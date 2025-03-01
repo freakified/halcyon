@@ -4,17 +4,19 @@
 #include "bgpicker.h"
 
 #define FORCE_BACKLIGHT
-#define FORCE_12H false
+#define FORCE_12H true
 #define TIME_STR_LEN 6
 #define DATE_STR_LEN 25
 
 // default colors
-#define DEFAULT_BG_COLOR GColorLightGray
+#define BASE_BG_COLOR GColorBlack
+#define CENTER_BG_COLOR GColorWhite
 
 // windows and layers
 static Window* mainWindow;
 static TextLayer* timeLayer;
 static TextLayer* dateLayer;
+static Layer* centerLayer;
 
 // fonts
 static GFont timeFont;
@@ -64,6 +66,12 @@ static void update_clock() {
   }
 }
 
+static void center_layer_update_proc(Layer *layer, GContext *ctx) {
+  GRect bounds = layer_get_bounds(layer);
+  graphics_context_set_fill_color(ctx, GColorWhite);
+  graphics_fill_rect(ctx, bounds, 0, GCornerNone);
+}
+
 static void main_window_load(Window *window) {
   //Create GBitmap, then set to created BitmapLayer
   // bgLayer = bitmap_layer_create(GRect(0, 0, 144, 168));
@@ -75,25 +83,31 @@ static void main_window_load(Window *window) {
 
    // Get information about the Window
   Layer *window_layer = window_get_root_layer(window);
-  window_set_background_color(window, DEFAULT_BG_COLOR);
+  window_set_background_color(window, BASE_BG_COLOR);
   GRect bounds = layer_get_bounds(window_layer);
 
+  // Create central rectangle
+  GRect centerFrame = GRect(bounds.origin.x + 20, bounds.origin.y + 20, bounds.size.w - 40, bounds.size.h - 40);
+  centerLayer = layer_create(centerFrame);
+  layer_set_update_proc(centerLayer, center_layer_update_proc);
+  layer_add_child(window_layer, centerLayer);
+
   // Create time TextLayer
-  timeLayer = text_layer_create(
-      GRect(0, bounds.size.h / 2 - 25, bounds.size.w, 50));
+  timeLayer = text_layer_create(GRect(0, 34, bounds.size.w - 40, 40));;
   text_layer_set_background_color(timeLayer, GColorClear);
   text_layer_set_text_color(timeLayer, GColorBlack);
   text_layer_set_font(timeLayer, timeFont);
   text_layer_set_text_alignment(timeLayer, GTextAlignmentCenter);
-  layer_add_child(window_get_root_layer(window), text_layer_get_layer(timeLayer));
+  layer_add_child(centerLayer, text_layer_get_layer(timeLayer));
 
   // Create date TextLayer
   dateLayer = text_layer_create(
-      GRect(0, bounds.size.h / 2 + 8, bounds.size.w, 24));
+      GRect(0, 64, bounds.size.w - 40, 20));
   text_layer_set_background_color(dateLayer, GColorClear);
+  // text_layer_set_background_color(dateLayer, GColorKellyGreen);
   text_layer_set_font(dateLayer, dateFont);
   text_layer_set_text_alignment(dateLayer, GTextAlignmentCenter);
-  layer_add_child(window_get_root_layer(window), text_layer_get_layer(dateLayer));
+  layer_add_child(centerLayer, text_layer_get_layer(dateLayer));
 
   // recalculate the sunrise/sunset times
   bgpicker_updateLocation(bgpicker_location);
