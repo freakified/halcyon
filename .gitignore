@@ -13,6 +13,7 @@ pebble_app.ld
 
 # Ignore other generated files
 serial_dump.txt
+pebble_screenshot_*
 
 # Ignore Apple Files
 # General

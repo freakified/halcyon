@@ -4,13 +4,16 @@
 #include "bgpicker.h"
 
 #define FORCE_BACKLIGHT
-#define FORCE_12H true
+#define FORCE_12H false
 #define TIME_STR_LEN 6
 #define DATE_STR_LEN 25
 
 // default colors
 #define BASE_BG_COLOR GColorBlack
 #define CENTER_BG_COLOR GColorWhite
+
+// various metrics
+#define EDGE_THICKNESS 19
 
 // windows and layers
 static Window* mainWindow;
@@ -27,15 +30,48 @@ static GFont dateFont;
 static char timeText[TIME_STR_LEN];
 static char dateText[DATE_STR_LEN];
 
+static GPoint getPipPosition(int id, int numPips, GRect bounds) {
+  int edgePips = numPips / 4; // Number of pips per edge
+  int x, y;
+
+  if (id < edgePips) {
+    // Top edge
+    x = bounds.origin.x + (id * bounds.size.w / edgePips);
+    y = bounds.origin.y;
+  } else if (id < 2 * edgePips) {
+    // Right edge
+    x = bounds.origin.x + bounds.size.w;
+    y = bounds.origin.y + ((id - edgePips) * bounds.size.h / edgePips);
+  } else if (id < 3 * edgePips) {
+    // Bottom edge
+    x = bounds.origin.x + bounds.size.w - ((id - 2 * edgePips) * bounds.size.w / edgePips);
+    y = bounds.origin.y + bounds.size.h;
+  } else {
+    // Left edge
+    x = bounds.origin.x;
+    y = bounds.origin.y + bounds.size.h - ((id - 3 * edgePips) * bounds.size.h / edgePips);
+  }
+
+  return GPoint(x, y);
+}
+
+
+
 static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
   GRect bounds = layer_get_bounds(layer);
   int thickness = 16;
+  GRect innerBounds =
+    GRect(bounds.origin.x + thickness / 2,
+          bounds.origin.y + thickness / 2,
+          bounds.size.w - thickness,
+          bounds.size.h - thickness);
+  int numPositions = 96;
   int width = bounds.size.w;
   int height = bounds.size.h;
   
   // Draw outer rectangular ring
   graphics_context_set_fill_color(ctx, GColorVividCerulean);
-  
+
   // Top bar
   graphics_fill_rect(ctx, GRect(0, 0, width, thickness), 0, GCornerNone);
   // Bottom bar
@@ -50,23 +86,15 @@ static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
   struct tm *timeInfo = localtime(&now);
   int hour = timeInfo->tm_hour;
   int minute = timeInfo->tm_min;
-  float progress = ((hour % 24) + (minute / 60.0f)) / 24.0f;
+  
+  // shift time by 15 hours so that it starts at the bottom
+  int shiftedHour = (hour + 15) % 24;
+  float progress = ((shiftedHour % 24) + (minute / 60.0f)) / 24.0f;
   
   // Calculate total perimeter minus the corners
-  int perimeter = 2 * (width + height - 2 * thickness);
-  int pos = (int)(progress * perimeter);
-  GPoint sunPos;
-  
-  // Determine which edge the sun is on
-  if (pos < width - thickness) {
-    sunPos = GPoint(pos + thickness / 2, thickness / 2);  // Top
-  } else if (pos < width + height - 2 * thickness) {
-    sunPos = GPoint(width - thickness / 2, (pos - (width - thickness)) + thickness / 2);  // Right
-  } else if (pos < 2 * width + height - 3 * thickness) {
-    sunPos = GPoint(width - (pos - (width + height - 2 * thickness)) - thickness / 2, height - thickness / 2);  // Bottom
-  } else {
-    sunPos = GPoint(thickness / 2, height - (pos - (2 * width + height - 3 * thickness)) - thickness / 2);  // Left
-  }
+  int pos = (int)(progress * numPositions);
+
+  GPoint sunPos = getPipPosition(pos, numPositions, innerBounds);
   
   // Draw sun indicator
   graphics_context_set_fill_color(ctx, GColorYellow);
@@ -75,6 +103,7 @@ static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
   graphics_fill_circle(ctx, sunPos, 7);
   graphics_draw_circle(ctx, sunPos, 7);
 }
+
 
 static void update_clock() {
   time_t rawTime;
@@ -123,48 +152,41 @@ static void center_layer_update_proc(Layer *layer, GContext *ctx) {
   graphics_context_set_fill_color(ctx, GColorWhite);
   graphics_fill_rect(ctx, bounds, 0, GCornerNone);
 
+  int innerPadding = 0;
+
+  // Corrections to fix symmetry, probably due to some kind of odd numbers
+  bounds.origin.x += innerPadding;
+  bounds.origin.y += innerPadding;
+  bounds.size.w -= innerPadding * innerPadding + 1;
+  bounds.size.h -= innerPadding * innerPadding + 1;
+
+  int numPips = 24;
   int pip_length = 2;
   int long_pip_length = 3; // Longer for cardinal directions
 
-  for (int i = 0; i < 24; i++) {
-    bool is_main_pip = ((i - 3) % 6 == 0); // 0, 6, 12, 18 are the main pips
+  for (int i = 0; i < numPips; i++) {
+    bool is_main_pip = ((i - (numPips / 8)) % (numPips / 4) == 0);
     int length = is_main_pip ? long_pip_length : pip_length;
 
     // Set color based on pip type
     graphics_context_set_stroke_color(ctx, is_main_pip ? GColorBlack : GColorLightGray);
     graphics_context_set_stroke_width(ctx, 3);
 
-    int x1, y1, x2, y2;
+    GPoint start = getPipPosition(i, numPips, bounds);
 
-    if (i < 6) {
-      // Top edge
-      x1 = bounds.origin.x + (i * bounds.size.w / 6);
-      y1 = bounds.origin.y + (is_main_pip ? long_pip_length : pip_length) - 1;
-      x2 = x1;
-      y2 = bounds.origin.y;
-    } else if (i < 12) {
-      // Right edge
-      x1 = bounds.origin.x + bounds.size.w - (is_main_pip ? long_pip_length : pip_length);
-      y1 = bounds.origin.y + ((i - 6) * bounds.size.h / 6);
-      x2 = bounds.origin.x + bounds.size.w;
-      y2 = y1;
-    } else if (i < 18) {
-      // Bottom edge
-      x1 = bounds.origin.x + bounds.size.w - ((i - 12) * bounds.size.w / 6);
-      y1 = bounds.origin.y + bounds.size.h - (is_main_pip ? long_pip_length : pip_length);
-      x2 = x1;
-      y2 = bounds.origin.y + bounds.size.h;
-    } else {
-      // Left edge
-      x1 = bounds.origin.x + (is_main_pip ? long_pip_length : pip_length) - 1;
-      y1 = bounds.origin.y + bounds.size.h - ((i - 18) * bounds.size.h / 6);
-      x2 = bounds.origin.x;
-      y2 = y1;
-    }
+    // Contract bounds inward for end position
+    GRect contracted_bounds = bounds;
+    contracted_bounds.origin.x += length;
+    contracted_bounds.origin.y += length;
+    contracted_bounds.size.w -= 2 * length;
+    contracted_bounds.size.h -= 2 * length;
 
-    graphics_draw_line(ctx, GPoint(x1, y1), GPoint(x2, y2));
+    GPoint end = getPipPosition(i, numPips, contracted_bounds);
+
+    graphics_draw_line(ctx, start, end);
   }
 }
+
 
 static void main_window_load(Window *window) {
   //Create GBitmap, then set to created BitmapLayer
@@ -186,13 +208,13 @@ static void main_window_load(Window *window) {
   layer_add_child(window_layer, ringLayer);
 
   // Create central rectangle
-  GRect centerFrame = GRect(bounds.origin.x + 20, bounds.origin.y + 20, bounds.size.w - 40, bounds.size.h - 40);
+  GRect centerFrame = GRect(bounds.origin.x + EDGE_THICKNESS, bounds.origin.y + EDGE_THICKNESS, bounds.size.w - EDGE_THICKNESS * 2, bounds.size.h - EDGE_THICKNESS * 2);
   centerLayer = layer_create(centerFrame);
   layer_set_update_proc(centerLayer, center_layer_update_proc);
   layer_add_child(window_layer, centerLayer);
 
   // Create time TextLayer
-  timeLayer = text_layer_create(GRect(0, 34, bounds.size.w - 40, 40));;
+  timeLayer = text_layer_create(GRect(0, 34, bounds.size.w - EDGE_THICKNESS * 2, 40));;
   text_layer_set_background_color(timeLayer, GColorClear);
   text_layer_set_text_color(timeLayer, GColorBlack);
   text_layer_set_font(timeLayer, timeFont);
@@ -201,7 +223,7 @@ static void main_window_load(Window *window) {
 
   // Create date TextLayer
   dateLayer = text_layer_create(
-      GRect(0, 68, bounds.size.w - 40, 20));
+      GRect(0, 68, bounds.size.w - EDGE_THICKNESS * 2, 40));
   text_layer_set_background_color(dateLayer, GColorClear);
   // text_layer_set_background_color(dateLayer, GColorKellyGreen);
   text_layer_set_font(dateLayer, dateFont);
