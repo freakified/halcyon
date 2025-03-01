@@ -1,0 +1,47 @@
+{
+    "name": "halcyon-pebble",
+    "author": "Freakified",
+    "version": "1.0.0",
+    "keywords": [
+      "pebble-watchface"
+    ],
+    "private": true,
+    "pebble": {
+      "displayName": "Halcyon",
+      "uuid": "c8e97ab8-7c12-45fb-975d-e85d5de61e8b",
+      "sdkVersion": "3",
+      "enableMultiJS": true,
+      "targetPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite"
+      ],
+      "capabilities": [
+        "location",
+        "health",
+        "configurable"
+      ],
+      "watchapp": {
+        "onlyShownOnCommunication": false,
+        "hiddenApp": false,
+        "watchface": true
+      },
+      "messageKeys": [
+        "KEY_LOCATION_LAT",
+        "KEY_LOCATION_LNG",
+        "KEY_GMT_OFFSET"
+      ],
+      "resources": {
+        "media": [
+          {
+            "file": "images/menuicon.png",
+            "menuIcon": true,
+            "name": "MENU_ICON",
+            "type": "bitmap"
+          }
+        ]
+      }
+    }
+  }
+  
