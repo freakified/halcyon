@@ -1,7 +1,7 @@
 #include <pebble.h>
-#include "utils.h"
 #include "messaging.h"
-#include "bgpicker.h"
+#include "solarUtils.h"
+#include "utils.h"
 
 #define FORCE_BACKLIGHT
 #define FORCE_12H false
@@ -16,11 +16,11 @@
 #define EDGE_THICKNESS 19
 
 // windows and layers
-static Window* mainWindow;
-static TextLayer* timeLayer;
-static TextLayer* dateLayer;
-static Layer* centerLayer;
-static Layer* ringLayer;
+static Window *mainWindow;
+static TextLayer *timeLayer;
+static TextLayer *dateLayer;
+static Layer *centerLayer;
+static Layer *ringLayer;
 
 // fonts
 static GFont timeFont;
@@ -29,6 +29,8 @@ static GFont dateFont;
 // long-lived strings
 static char timeText[TIME_STR_LEN];
 static char dateText[DATE_STR_LEN];
+
+static SolarInfo currentSolarInfo;
 
 static GPoint getPipPosition(int id, int numPips, GRect bounds) {
   int edgePips = numPips / 4; // Number of pips per edge
@@ -44,62 +46,131 @@ static GPoint getPipPosition(int id, int numPips, GRect bounds) {
     y = bounds.origin.y + ((id - edgePips) * bounds.size.h / edgePips);
   } else if (id < 3 * edgePips) {
     // Bottom edge
-    x = bounds.origin.x + bounds.size.w - ((id - 2 * edgePips) * bounds.size.w / edgePips);
+    x = bounds.origin.x + bounds.size.w -
+        ((id - 2 * edgePips) * bounds.size.w / edgePips);
     y = bounds.origin.y + bounds.size.h;
   } else {
     // Left edge
     x = bounds.origin.x;
-    y = bounds.origin.y + bounds.size.h - ((id - 3 * edgePips) * bounds.size.h / edgePips);
+    y = bounds.origin.y + bounds.size.h -
+        ((id - 3 * edgePips) * bounds.size.h / edgePips);
   }
 
   return GPoint(x, y);
 }
 
+GRect snap_to_edges(GRect rect, GRect bounds, int thickness) {
+    // Vertical snapping
+    if (rect.origin.y + rect.size.h > bounds.size.h - thickness) {
+        rect.size.h = bounds.size.h - rect.origin.y;
+    }
+    if (rect.origin.y < thickness) {
+        rect.size.h += rect.origin.y;
+        rect.origin.y = 0;
+    }
 
+    // Horizontal snapping
+    if (rect.origin.x + rect.size.w > bounds.size.w - thickness) {
+        rect.size.w = bounds.size.w - rect.origin.x;
+    }
+    if (rect.origin.x < thickness) {
+        rect.size.w += rect.origin.x;
+        rect.origin.x = 0;
+    }
+
+    return rect;
+}
 
 static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
   GRect bounds = layer_get_bounds(layer);
   int thickness = 16;
+  int strokeWidth = 3;
   GRect innerBounds =
-    GRect(bounds.origin.x + thickness / 2,
-          bounds.origin.y + thickness / 2,
-          bounds.size.w - thickness,
-          bounds.size.h - thickness);
+      GRect(bounds.origin.x + thickness / 2, bounds.origin.y + thickness / 2,
+            bounds.size.w - thickness, bounds.size.h - thickness);
   int numPositions = 96;
   int width = bounds.size.w;
   int height = bounds.size.h;
-  
+
   // Draw outer rectangular ring
-  graphics_context_set_fill_color(ctx, GColorVividCerulean);
+  graphics_context_set_fill_color(ctx, GColorCobaltBlue);
 
   // Top bar
   graphics_fill_rect(ctx, GRect(0, 0, width, thickness), 0, GCornerNone);
   // Bottom bar
-  graphics_fill_rect(ctx, GRect(0, height - thickness, width, thickness), 0, GCornerNone);
+  graphics_fill_rect(ctx, GRect(0, height - thickness, width, thickness), 0,
+                     GCornerNone);
   // Left bar
   graphics_fill_rect(ctx, GRect(0, 0, thickness, height), 0, GCornerNone);
   // Right bar
-  graphics_fill_rect(ctx, GRect(width - thickness, 0, thickness, height), 0, GCornerNone);
-  
+  graphics_fill_rect(ctx, GRect(width - thickness, 0, thickness, height), 0,
+                     GCornerNone);
+
   // Get time and sun position
   time_t now = time(NULL);
   struct tm *timeInfo = localtime(&now);
   int hour = timeInfo->tm_hour;
   int minute = timeInfo->tm_min;
-  
-  // shift time by 15 hours so that it starts at the bottom
+
+  // Shift time by 15 hours so that it starts at the bottom
   int shiftedHour = (hour + 15) % 24;
   float progress = ((shiftedHour % 24) + (minute / 60.0f)) / 24.0f;
-  
+
   // Calculate total perimeter minus the corners
   int pos = (int)(progress * numPositions);
 
   GPoint sunPos = getPipPosition(pos, numPositions, innerBounds);
-  
-  // Draw sun indicator
-  graphics_context_set_fill_color(ctx, GColorYellow);
+
+  // Apply the same 15-hour shift to the sunrise and sunset times
+  int shiftedSunriseMinute = (currentSolarInfo.sunriseMinute + 15 * 60) % (24 * 60);
+  int shiftedSunsetMinute = (currentSolarInfo.sunsetMinute + 15 * 60) % (24 * 60);
+
+  // Calculate sunrise and sunset positions on the ring using getPipPosition
+  int dayStartPos = (int)(((shiftedSunriseMinute / 1440.0f) * numPositions) + 0.5);
+  int dayEndPos = (int)(((shiftedSunsetMinute / 1440.0f) * numPositions) + 0.5);
+
+  GPoint dayStart = getPipPosition(dayStartPos, numPositions, innerBounds);
+  GPoint dayEnd = getPipPosition(dayEndPos, numPositions, innerBounds);
+
+  // Fill the day section
+  graphics_context_set_fill_color(ctx, GColorVividCerulean);
+  for (int i = dayStartPos; i != dayEndPos; i = (i + 1) % numPositions) {
+    GPoint pipPos = getPipPosition(i, numPositions, innerBounds);
+    graphics_fill_rect(ctx, GRect(pipPos.x - thickness / 2, pipPos.y - thickness / 2, thickness, thickness), 0, GCornerNone);
+  }
+
+  // Draw twilight interface blocks centered as squares with external stroke
+  int boxSize = thickness;
   graphics_context_set_stroke_color(ctx, GColorBlack);
-  graphics_context_set_stroke_width(ctx, 3);
+  graphics_context_set_stroke_width(ctx, strokeWidth);
+
+  graphics_context_set_fill_color(ctx, GColorMelon);
+  GRect twilightStartRect = GRect(dayStart.x - boxSize / 2, dayStart.y - boxSize / 2, boxSize, boxSize);
+  GRect twilightEndRect = GRect(dayEnd.x - boxSize / 2, dayEnd.y - boxSize / 2, boxSize, boxSize);
+
+  // Correct boundaries, if necessary
+  twilightStartRect = snap_to_edges(twilightStartRect, bounds, thickness);
+  twilightEndRect = snap_to_edges(twilightEndRect, bounds, thickness);
+
+  graphics_fill_rect(ctx, twilightStartRect, 0, GCornerNone);
+  graphics_draw_rect(ctx,GRect(twilightStartRect.origin.x - 2,
+                                twilightStartRect.origin.y - 2,
+                                twilightStartRect.size.w + 4,
+                                twilightStartRect.size.h  + 4)
+                    );
+
+  graphics_context_set_fill_color(ctx, GColorChromeYellow);
+  graphics_fill_rect(ctx, twilightEndRect, 0, GCornerNone);
+    graphics_draw_rect(ctx,GRect(twilightEndRect.origin.x - 2,
+                                twilightEndRect.origin.y - 2,
+                                twilightEndRect.size.w + 4,
+                                twilightEndRect.size.h  + 4)
+                    );
+
+
+  // Draw the sun position (GColorYellow)
+  graphics_context_set_fill_color(ctx, GColorYellow);
+  
   graphics_fill_circle(ctx, sunPos, 7);
   graphics_draw_circle(ctx, sunPos, 7);
 }
@@ -107,13 +178,13 @@ static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
 
 static void update_clock() {
   time_t rawTime;
-  struct tm* timeInfo;
+  struct tm *timeInfo;
 
   time(&rawTime);
   timeInfo = localtime(&rawTime);
 
   // set time string
-  if(clock_is_24h_style() && !FORCE_12H) {
+  if (clock_is_24h_style() && !FORCE_12H) {
     // use 24 hour format
     strftime(timeText, TIME_STR_LEN, "%H:%M", timeInfo);
   } else {
@@ -121,10 +192,10 @@ static void update_clock() {
     strftime(timeText, TIME_STR_LEN, "%I:%M", timeInfo);
   }
 
-  //now trim leading 0's
-  if(timeText[0] == '0') {
-    //shuffle everyone back by 1
-    for(int i = 0; i < TIME_STR_LEN; i++) {
+  // now trim leading 0's
+  if (timeText[0] == '0') {
+    // shuffle everyone back by 1
+    for (int i = 0; i < TIME_STR_LEN; i++) {
       timeText[i] = timeText[i + 1];
     }
   }
@@ -141,10 +212,11 @@ static void update_clock() {
 
   // forces the the background image to update, reflecting changes immediately
   // bitmap_layer_set_bitmap(bgLayer, bgpicker_getCurrentBG(timeInfo));
+  currentSolarInfo = solarUtils_recalculateSolarData();
 
-  if(timeInfo->tm_hour == 0 && timeInfo->tm_min == 0) {
-    bgpicker_updateLocation(bgpicker_location);
-  }
+  // if (timeInfo->tm_hour == 0 && timeInfo->tm_min == 0) {
+  //   solarUtils_recalculateSolarData();
+  // }
 }
 
 static void center_layer_update_proc(Layer *layer, GContext *ctx) {
@@ -169,7 +241,8 @@ static void center_layer_update_proc(Layer *layer, GContext *ctx) {
     int length = is_main_pip ? long_pip_length : pip_length;
 
     // Set color based on pip type
-    graphics_context_set_stroke_color(ctx, is_main_pip ? GColorBlack : GColorLightGray);
+    graphics_context_set_stroke_color(ctx, is_main_pip ? GColorBlack
+                                                       : GColorLightGray);
     graphics_context_set_stroke_width(ctx, 3);
 
     GPoint start = getPipPosition(i, numPips, bounds);
@@ -187,17 +260,17 @@ static void center_layer_update_proc(Layer *layer, GContext *ctx) {
   }
 }
 
-
 static void main_window_load(Window *window) {
-  //Create GBitmap, then set to created BitmapLayer
-  // bgLayer = bitmap_layer_create(GRect(0, 0, 144, 168));
-  // layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(bgLayer));
-  // 
-  // Get fonts
+  // Create GBitmap, then set to created BitmapLayer
+  //  bgLayer = bitmap_layer_create(GRect(0, 0, 144, 168));
+  //  layer_add_child(window_get_root_layer(window),
+  //  bitmap_layer_get_layer(bgLayer));
+  //
+  //  Get fonts
   timeFont = fonts_get_system_font(FONT_KEY_LECO_32_BOLD_NUMBERS);
   dateFont = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
 
-   // Get information about the Window
+  // Get information about the Window
   Layer *window_layer = window_get_root_layer(window);
   window_set_background_color(window, BASE_BG_COLOR);
   GRect bounds = layer_get_bounds(window_layer);
@@ -208,13 +281,17 @@ static void main_window_load(Window *window) {
   layer_add_child(window_layer, ringLayer);
 
   // Create central rectangle
-  GRect centerFrame = GRect(bounds.origin.x + EDGE_THICKNESS, bounds.origin.y + EDGE_THICKNESS, bounds.size.w - EDGE_THICKNESS * 2, bounds.size.h - EDGE_THICKNESS * 2);
+  GRect centerFrame = GRect(
+      bounds.origin.x + EDGE_THICKNESS, bounds.origin.y + EDGE_THICKNESS,
+      bounds.size.w - EDGE_THICKNESS * 2, bounds.size.h - EDGE_THICKNESS * 2);
   centerLayer = layer_create(centerFrame);
   layer_set_update_proc(centerLayer, center_layer_update_proc);
   layer_add_child(window_layer, centerLayer);
 
   // Create time TextLayer
-  timeLayer = text_layer_create(GRect(0, 34, bounds.size.w - EDGE_THICKNESS * 2, 40));;
+  timeLayer =
+      text_layer_create(GRect(0, 34, bounds.size.w - EDGE_THICKNESS * 2, 40));
+  ;
   text_layer_set_background_color(timeLayer, GColorClear);
   text_layer_set_text_color(timeLayer, GColorBlack);
   text_layer_set_font(timeLayer, timeFont);
@@ -222,8 +299,8 @@ static void main_window_load(Window *window) {
   layer_add_child(centerLayer, text_layer_get_layer(timeLayer));
 
   // Create date TextLayer
-  dateLayer = text_layer_create(
-      GRect(0, 68, bounds.size.w - EDGE_THICKNESS * 2, 40));
+  dateLayer =
+      text_layer_create(GRect(0, 68, bounds.size.w - EDGE_THICKNESS * 2, 40));
   text_layer_set_background_color(dateLayer, GColorClear);
   // text_layer_set_background_color(dateLayer, GColorKellyGreen);
   text_layer_set_font(dateLayer, dateFont);
@@ -231,17 +308,14 @@ static void main_window_load(Window *window) {
   layer_add_child(centerLayer, text_layer_get_layer(dateLayer));
 
   // recalculate the sunrise/sunset times
-  bgpicker_updateLocation(bgpicker_location);
+  solarUtils_recalculateSolarData();
 
   // Make sure the time is displayed from the start
   update_clock();
 }
 
 static void main_window_unload(Window *window) {
-  //Destroy 
-  bgpicker_destruct();
-
-  // Destroy TextLayer
+  // Destroy everything
   text_layer_destroy(timeLayer);
   text_layer_destroy(dateLayer);
   layer_destroy(ringLayer);
@@ -256,10 +330,6 @@ static void init() {
   #ifdef FORCE_BACKLIGHT
   light_enable(true);
   #endif
-
-  // load background images
-  bgpicker_init();
-
   // init the messaging thing
   messaging_init();
 
@@ -267,10 +337,9 @@ static void init() {
   mainWindow = window_create();
 
   // Set handlers to manage the elements inside the Window
-  window_set_window_handlers(mainWindow, (WindowHandlers) {
-    .load = main_window_load,
-    .unload = main_window_unload
-  });
+  window_set_window_handlers(
+      mainWindow,
+      (WindowHandlers){.load = main_window_load, .unload = main_window_unload});
 
   window_stack_push(mainWindow, true);
 
@@ -278,9 +347,7 @@ static void init() {
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
 }
 
-static void deinit() {
-  window_destroy(mainWindow);
-}
+static void deinit() { window_destroy(mainWindow); }
 
 int main(void) {
   init();
