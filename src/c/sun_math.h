@@ -1,5 +1,5 @@
 /**
- *  Math functions required by sun_calc. Taken from
+ *  Math functions required by sun_calc. Originally from
  *  https://github.com/orgemd/pebble-sunclock
  */
 

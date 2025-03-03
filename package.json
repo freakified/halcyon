@@ -28,9 +28,9 @@
         "watchface": true
       },
       "messageKeys": [
-        "KEY_LOCATION_LAT",
-        "KEY_LOCATION_LNG",
-        "KEY_GMT_OFFSET"
+        "LOCATION_LAT",
+        "LOCATION_LNG",
+        "LOCATION_GMT_OFFSET"
       ],
       "resources": {
         "media": [

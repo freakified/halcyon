@@ -139,7 +139,7 @@ static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
     graphics_fill_rect(ctx, GRect(pipPos.x - thickness / 2, pipPos.y - thickness / 2, thickness, thickness), 0, GCornerNone);
   }
 
-  // Draw twilight interface blocks centered as squares with external stroke
+  // Draw twilight interface blocks
   int boxSize = thickness;
   graphics_context_set_stroke_color(ctx, GColorBlack);
   graphics_context_set_stroke_width(ctx, strokeWidth);
@@ -148,7 +148,8 @@ static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
   GRect twilightStartRect = GRect(dayStart.x - boxSize / 2, dayStart.y - boxSize / 2, boxSize, boxSize);
   GRect twilightEndRect = GRect(dayEnd.x - boxSize / 2, dayEnd.y - boxSize / 2, boxSize, boxSize);
 
-  // Correct boundaries, if necessary
+  // Correct boundaries of the twilight blocks, if necessary
+  // (this ensures that the ring doesn't "break" if a block is on an edge)
   twilightStartRect = snap_to_edges(twilightStartRect, bounds, thickness);
   twilightEndRect = snap_to_edges(twilightEndRect, bounds, thickness);
 
@@ -207,16 +208,14 @@ static void update_clock() {
   strftime(dateText, DATE_STR_LEN, "%a, %b %e", timeInfo);
   to_uppercase(dateText);
   text_layer_set_text(dateLayer, dateText);
+  
+  // if sunrise/sunset has not yet been calculated, do that
+  if(currentSolarInfo.sunriseMinute == 0 && currentSolarInfo.sunriseMinute == 0) {
+    currentSolarInfo = solarUtils_recalculateSolarData();
+  }
 
+  // redraw solar ring layer
   layer_mark_dirty(ringLayer);
-
-  // forces the the background image to update, reflecting changes immediately
-  // bitmap_layer_set_bitmap(bgLayer, bgpicker_getCurrentBG(timeInfo));
-  currentSolarInfo = solarUtils_recalculateSolarData();
-
-  // if (timeInfo->tm_hour == 0 && timeInfo->tm_min == 0) {
-  //   solarUtils_recalculateSolarData();
-  // }
 }
 
 static void center_layer_update_proc(Layer *layer, GContext *ctx) {
@@ -258,6 +257,12 @@ static void center_layer_update_proc(Layer *layer, GContext *ctx) {
 
     graphics_draw_line(ctx, start, end);
   }
+}
+
+// settings might have changed, so recalculate solar data and refresh screen
+void onSettingsChanged() {
+    currentSolarInfo = solarUtils_recalculateSolarData();
+    update_clock();
 }
 
 static void main_window_load(Window *window) {
@@ -307,9 +312,6 @@ static void main_window_load(Window *window) {
   text_layer_set_text_alignment(dateLayer, GTextAlignmentCenter);
   layer_add_child(centerLayer, text_layer_get_layer(dateLayer));
 
-  // recalculate the sunrise/sunset times
-  solarUtils_recalculateSolarData();
-
   // Make sure the time is displayed from the start
   update_clock();
 }
@@ -326,12 +328,18 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_clock();
 }
 
+static void day_tick_handler(struct tm *tick_time, TimeUnits units_changed) {
+  // make sure we recalculate once per day
+  currentSolarInfo = solarUtils_recalculateSolarData();
+  update_clock();
+}
+
 static void init() {
   #ifdef FORCE_BACKLIGHT
   light_enable(true);
   #endif
   // init the messaging thing
-  messaging_init();
+  messaging_init(onSettingsChanged);
 
   // Create main Window element and assign to pointer
   mainWindow = window_create();
@@ -345,6 +353,7 @@ static void init() {
 
   // Register with TickTimerService
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+  tick_timer_service_subscribe(DAY_UNIT, day_tick_handler);
 }
 
 static void deinit() { window_destroy(mainWindow); }

@@ -1,6 +1,6 @@
 /*
  * Math required for sunrise/sunset calculations.
- * From https://github.com/ewedel/pebble-sunclock/
+ * Originally from https://github.com/ewedel/pebble-sunclock/
  *
  * loosely based on
  * - http://stackoverflow.com/questions/11261170/c-and-maths-fast-approximation-of-a-trigonometric-function
