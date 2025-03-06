@@ -1,5 +1,6 @@
 #include <pebble.h>
 #include "messaging.h"
+#include "settings.h"
 #include "solarUtils.h"
 #include "utils.h"
 
@@ -7,10 +8,6 @@
 #define FORCE_12H false
 #define TIME_STR_LEN 6
 #define DATE_STR_LEN 25
-
-// default colors
-#define BASE_BG_COLOR GColorBlack
-#define CENTER_BG_COLOR GColorWhite
 
 // various metrics
 #define EDGE_THICKNESS 19
@@ -93,7 +90,7 @@ static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
   int height = bounds.size.h;
 
   // Draw outer rectangular ring
-  graphics_context_set_fill_color(ctx, GColorCobaltBlue);
+  graphics_context_set_fill_color(ctx, globalSettings.ringNightColor);
 
   // Top bar
   graphics_fill_rect(ctx, GRect(0, 0, width, thickness), 0, GCornerNone);
@@ -133,18 +130,17 @@ static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
   GPoint dayEnd = getPipPosition(dayEndPos, numPositions, innerBounds);
 
   // Fill the day section
-  graphics_context_set_fill_color(ctx, GColorVividCerulean);
+  graphics_context_set_fill_color(ctx, globalSettings.ringDayColor);
   for (int i = dayStartPos; i != dayEndPos; i = (i + 1) % numPositions) {
     GPoint pipPos = getPipPosition(i, numPositions, innerBounds);
     graphics_fill_rect(ctx, GRect(pipPos.x - thickness / 2, pipPos.y - thickness / 2, thickness, thickness), 0, GCornerNone);
   }
 
-  // Draw twilight interface blocks
+  // Calculate positioning of twilight interface blocks
   int boxSize = thickness;
-  graphics_context_set_stroke_color(ctx, GColorBlack);
+  graphics_context_set_stroke_color(ctx, globalSettings.twilightStrokeColor);
   graphics_context_set_stroke_width(ctx, strokeWidth);
 
-  graphics_context_set_fill_color(ctx, GColorMelon);
   GRect twilightStartRect = GRect(dayStart.x - boxSize / 2, dayStart.y - boxSize / 2, boxSize, boxSize);
   GRect twilightEndRect = GRect(dayEnd.x - boxSize / 2, dayEnd.y - boxSize / 2, boxSize, boxSize);
 
@@ -153,6 +149,8 @@ static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
   twilightStartRect = snap_to_edges(twilightStartRect, bounds, thickness);
   twilightEndRect = snap_to_edges(twilightEndRect, bounds, thickness);
 
+  // draw sunrise block
+  graphics_context_set_fill_color(ctx, globalSettings.ringSunriseColor);
   graphics_fill_rect(ctx, twilightStartRect, 0, GCornerNone);
   graphics_draw_rect(ctx,GRect(twilightStartRect.origin.x - 2,
                                 twilightStartRect.origin.y - 2,
@@ -160,7 +158,8 @@ static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
                                 twilightStartRect.size.h  + 4)
                     );
 
-  graphics_context_set_fill_color(ctx, GColorChromeYellow);
+  // draw sunset block
+  graphics_context_set_fill_color(ctx, globalSettings.ringSunsetColor);
   graphics_fill_rect(ctx, twilightEndRect, 0, GCornerNone);
     graphics_draw_rect(ctx,GRect(twilightEndRect.origin.x - 2,
                                 twilightEndRect.origin.y - 2,
@@ -169,9 +168,9 @@ static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
                     );
 
 
-  // Draw the sun position (GColorYellow)
-  graphics_context_set_fill_color(ctx, GColorYellow);
-  
+  // cue the sun! 
+  graphics_context_set_fill_color(ctx, globalSettings.sunFillColor);
+  graphics_context_set_stroke_color(ctx, globalSettings.sunStrokeColor);
   graphics_fill_circle(ctx, sunPos, 7);
   graphics_draw_circle(ctx, sunPos, 7);
 }
@@ -220,7 +219,7 @@ static void update_clock() {
 
 static void center_layer_update_proc(Layer *layer, GContext *ctx) {
   GRect bounds = layer_get_bounds(layer);
-  graphics_context_set_fill_color(ctx, GColorWhite);
+  graphics_context_set_fill_color(ctx, globalSettings.bgColor);
   graphics_fill_rect(ctx, bounds, 0, GCornerNone);
 
   int innerPadding = 0;
@@ -240,8 +239,8 @@ static void center_layer_update_proc(Layer *layer, GContext *ctx) {
     int length = is_main_pip ? long_pip_length : pip_length;
 
     // Set color based on pip type
-    graphics_context_set_stroke_color(ctx, is_main_pip ? GColorBlack
-                                                       : GColorLightGray);
+    graphics_context_set_stroke_color(ctx, is_main_pip ? globalSettings.pipColorPrimary
+                                                       : globalSettings.pipColorSecondary);
     graphics_context_set_stroke_width(ctx, 3);
 
     GPoint start = getPipPosition(i, numPips, bounds);
@@ -266,18 +265,13 @@ void onSettingsChanged() {
 }
 
 static void main_window_load(Window *window) {
-  // Create GBitmap, then set to created BitmapLayer
-  //  bgLayer = bitmap_layer_create(GRect(0, 0, 144, 168));
-  //  layer_add_child(window_get_root_layer(window),
-  //  bitmap_layer_get_layer(bgLayer));
-  //
   //  Get fonts
   timeFont = fonts_get_system_font(FONT_KEY_LECO_32_BOLD_NUMBERS);
   dateFont = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
 
   // Get information about the Window
   Layer *window_layer = window_get_root_layer(window);
-  window_set_background_color(window, BASE_BG_COLOR);
+  window_set_background_color(window, globalSettings.ringStrokeColor);
   GRect bounds = layer_get_bounds(window_layer);
 
   // Create ring layer
@@ -298,7 +292,7 @@ static void main_window_load(Window *window) {
       text_layer_create(GRect(0, 34, bounds.size.w - EDGE_THICKNESS * 2, 40));
   ;
   text_layer_set_background_color(timeLayer, GColorClear);
-  text_layer_set_text_color(timeLayer, GColorBlack);
+  text_layer_set_text_color(timeLayer, globalSettings.timeColor);
   text_layer_set_font(timeLayer, timeFont);
   text_layer_set_text_alignment(timeLayer, GTextAlignmentCenter);
   layer_add_child(centerLayer, text_layer_get_layer(timeLayer));
@@ -307,7 +301,7 @@ static void main_window_load(Window *window) {
   dateLayer =
       text_layer_create(GRect(0, 68, bounds.size.w - EDGE_THICKNESS * 2, 40));
   text_layer_set_background_color(dateLayer, GColorClear);
-  // text_layer_set_background_color(dateLayer, GColorKellyGreen);
+  text_layer_set_text_color(dateLayer, globalSettings.subtextPrimaryColor);
   text_layer_set_font(dateLayer, dateFont);
   text_layer_set_text_alignment(dateLayer, GTextAlignmentCenter);
   layer_add_child(centerLayer, text_layer_get_layer(dateLayer));
@@ -338,6 +332,10 @@ static void init() {
   #ifdef FORCE_BACKLIGHT
   light_enable(true);
   #endif
+
+  // load those settings
+  Settings_init();
+
   // init the messaging thing
   messaging_init(onSettingsChanged);
 

@@ -14,7 +14,7 @@
 #define DEFAULT_SUNSET_TIME 1080
 
 // persistent storage
-#define LOCATION_DATA_KEY 1
+#define LOCATION_DATA_KEY 50
 
 typedef struct {
   float lat;

@@ -1,0 +1,29 @@
+[
+    { 
+      "type": "heading", 
+      "defaultValue": "Halcyon Settings" 
+    }, 
+    {
+      "type": "radiogroup",
+      "messageKey": "favorite_food",
+      "label": "Favorite Food",
+      "options": [
+          { 
+          "label": "Sushi", 
+          "value": "sushi" 
+          },
+          { 
+          "label": "Pizza", 
+          "value": "pizza" 
+          },
+          { 
+          "label": "Retro Green", 
+          "value": "greenCats" 
+          }
+      ]
+      },
+    {
+      "type": "submit",
+      "defaultValue": "Save"
+    }
+  ]

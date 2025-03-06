@@ -1,3 +1,7 @@
+var Clay = require('pebble-clay');
+var clayConfig = require('./config.json');
+var clay = new Clay(clayConfig);
+
 function locationError(err) {
   console.log('location error on the JS side :-(');
 }
