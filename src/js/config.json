@@ -7,6 +7,7 @@
         "type": "radiogroup",
         "messageKey": "SETTING_PRESET",
         "defaultValue": "default",
+        "capabilities": ["COLOR"],
         "options": [
           {
             "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='default'></div>Solar (Default)</div>",
@@ -32,18 +33,42 @@
             "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='fireworkTheme'></div>Firework</div>",
             "value": "fireworkTheme"
           },
-
           {
             "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='oceanTheme'></div>Into the Deep</div>",
             "value": "oceanTheme"
           },
           {
+            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='mauveTheme'></div>Mauve Alert</div>",
+            "value": "mauveTheme"
+          },
+          {
             "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='sandTheme'></div>Sands of Time</div>",
             "value": "sandTheme"
           },
+          { "label": "Custom...", "value": "custom" }
+        ]
+      },
+      {
+        "type": "radiogroup",
+        "messageKey": "SETTING_PRESET",
+        "defaultValue": "bwTheme1",
+        "capabilities": ["BW"],
+        "options": [
           {
-            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='mauveTheme'></div>Mauve Alert</div>",
-            "value": "mauveTheme"
+            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='bwTheme1'></div>Solar (Default)</div>",
+            "value": "bwTheme1"
+          },
+          {
+            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='bwTheme2'></div>Xenon</div>",
+            "value": "bwTheme2"
+          },
+          {
+            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='bwTheme3'></div>Inkwell</div>",
+            "value": "bwTheme3"
+          },
+          {
+            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='bwTheme4'></div>City Lights</div>",
+            "value": "bwTheme4"
           },
           { "label": "Custom...", "value": "custom" }
         ]
@@ -80,6 +105,7 @@
         "messageKey": "SETTING_BG_COLOR",
         "defaultValue": "000000",
         "sunlight": false,
+        "allowGray": true,
         "label": "Background Color"
       },
       {
@@ -87,6 +113,7 @@
         "messageKey": "SETTING_RING_STROKE_COLOR",
         "defaultValue": "FFFFFF",
         "sunlight": false,
+        "allowGray": false,
         "label": "Ring Outline Color"
       },
       {
@@ -108,6 +135,7 @@
         "messageKey": "SETTING_RING_DAY_COLOR",
         "defaultValue": "FFFF00",
         "sunlight": false,
+        "allowGray": true,
         "label": "Ring Color: Day"
       },
       {
@@ -115,6 +143,7 @@
         "messageKey": "SETTING_RING_NIGHT_COLOR",
         "defaultValue": "000055",
         "sunlight": false,
+        "allowGray": true,
         "label": "Ring Color: Night"
       },
       {
@@ -122,6 +151,7 @@
         "messageKey": "SETTING_RING_SUNRISE_COLOR",
         "defaultValue": "FF5500",
         "sunlight": false,
+        "allowGray": true,
         "label": "Ring Color: Sunrise"
       },
       {
@@ -129,6 +159,7 @@
         "messageKey": "SETTING_RING_SUNSET_COLOR",
         "defaultValue": "FFAA00",
         "sunlight": false,
+        "allowGray": true,
         "label": "Ring Color: Sunset"
       },
       {
@@ -143,6 +174,7 @@
         "messageKey": "SETTING_SUN_FILL_COLOR",
         "defaultValue": "FFFF00",
         "sunlight": false,
+        "allowGray": true,
         "label": "Sun Color"
       }
     ]
