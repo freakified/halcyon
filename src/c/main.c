@@ -4,7 +4,7 @@
 #include "solarUtils.h"
 #include "utils.h"
 
-#define FORCE_BACKLIGHT
+// #define FORCE_BACKLIGHT
 #define FORCE_12H false
 #define TIME_STR_LEN 6
 #define DATE_STR_LEN 25
@@ -158,6 +158,7 @@ static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
   graphics_fill_radial(ctx, bounds, GOvalScaleModeFitCircle, thickness, 0, dayEndAngle);
 
   // Draw the top right area
+  graphics_context_set_fill_color(ctx, GColorBlue);
   graphics_fill_radial(ctx, bounds, GOvalScaleModeFitCircle, thickness, dayStartAngle, TRIG_MAX_ANGLE);
 
   // Draw the night area
