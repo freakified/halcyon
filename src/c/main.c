@@ -16,6 +16,8 @@
 static Window *mainWindow;
 static TextLayer *timeLayer;
 static TextLayer *dateLayer;
+static Layer *windowLayer;
+static Layer *shiftingLayer;
 static Layer *centerLayer;
 static Layer *ringLayer;
 
@@ -28,6 +30,42 @@ static char timeText[TIME_STR_LEN];
 static char dateText[DATE_STR_LEN];
 
 static SolarInfo currentSolarInfo;
+
+// please ignore this hilariously overcomplicated quick view code
+static void quickViewLayerReposition() {
+  GRect full_bounds = layer_get_bounds(windowLayer);
+  GRect bounds = layer_get_unobstructed_bounds(windowLayer);
+
+  // Calculate new height 
+  int new_height = bounds.size.h;
+  int diff = full_bounds.size.h - bounds.size.h;
+  int shift_up = diff / 2;
+
+  // Resize shiftingLayer 
+  GRect shiftingFrame = GRect(0, 0, full_bounds.size.w, new_height);
+  layer_set_frame(shiftingLayer, shiftingFrame);
+
+  // Resize ringLayer to match shiftingLayer's new size
+  layer_set_frame(ringLayer, GRect(0, 0, shiftingFrame.size.w, shiftingFrame.size.h));
+
+  // Resize centerLayer proportionally (keeping top alignment)
+  int new_center_height = new_height - 2 * EDGE_THICKNESS;
+  if (new_center_height < 0) new_center_height = 0; // Prevent negative values
+  GRect centerFrame = GRect(
+      EDGE_THICKNESS, EDGE_THICKNESS,
+      shiftingFrame.size.w - 2 * EDGE_THICKNESS, new_center_height);
+  layer_set_frame(centerLayer, centerFrame);
+
+  // Shift text layers upward
+  layer_set_frame(text_layer_get_layer(timeLayer),
+      GRect(0, 34 - shift_up, full_bounds.size.w - EDGE_THICKNESS * 2, 40));
+  layer_set_frame(text_layer_get_layer(dateLayer),
+      GRect(0, 68 - shift_up, full_bounds.size.w - EDGE_THICKNESS * 2, 40));
+
+  // Redraw layers
+  layer_mark_dirty(ringLayer);
+  layer_mark_dirty(centerLayer);
+}
 
 static GPoint getPipPosition(int id, int numPips, GRect bounds) {
   int edgePips = numPips / 4; // Number of pips per edge
@@ -272,20 +310,34 @@ void onSettingsChanged() {
     update_clock();
 }
 
+// Event fires frequently, while obstruction is appearing or disappearing
+static void onUnobstructedAreaChange(AnimationProgress progress, void *context) {
+  quickViewLayerReposition();
+}
+
+// Event fires once, after obstruction appears or disappears
+static void onUnobstructedAreaDidChange(void *context) {
+  quickViewLayerReposition();
+}
+
 static void main_window_load(Window *window) {
   //  Get fonts
   timeFont = fonts_get_system_font(FONT_KEY_LECO_32_BOLD_NUMBERS);
   dateFont = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
 
   // Get information about the Window
-  Layer *window_layer = window_get_root_layer(window);
+  windowLayer = window_get_root_layer(window);
   window_set_background_color(window, globalSettings.ringStrokeColor);
-  GRect bounds = layer_get_bounds(window_layer);
+  GRect bounds = layer_get_bounds(windowLayer);
+
+  shiftingLayer = layer_create(bounds);
+  layer_add_child(windowLayer, shiftingLayer);
+
 
   // Create ring layer
   ringLayer = layer_create(bounds);
   layer_set_update_proc(ringLayer, ring_layer_update_proc);
-  layer_add_child(window_layer, ringLayer);
+  layer_add_child(shiftingLayer, ringLayer);
 
   // Create central rectangle
   GRect centerFrame = GRect(
@@ -293,7 +345,7 @@ static void main_window_load(Window *window) {
       bounds.size.w - EDGE_THICKNESS * 2, bounds.size.h - EDGE_THICKNESS * 2);
   centerLayer = layer_create(centerFrame);
   layer_set_update_proc(centerLayer, center_layer_update_proc);
-  layer_add_child(window_layer, centerLayer);
+  layer_add_child(shiftingLayer, centerLayer);
 
   // Create time TextLayer
   timeLayer =
@@ -312,8 +364,18 @@ static void main_window_load(Window *window) {
   text_layer_set_text_alignment(dateLayer, GTextAlignmentCenter);
   layer_add_child(centerLayer, text_layer_get_layer(dateLayer));
 
+  // Subscribe to the unobstructed area events
+  UnobstructedAreaHandlers handlers = {
+    .change = onUnobstructedAreaChange,
+    .did_change = onUnobstructedAreaDidChange
+  };
+  unobstructed_area_service_subscribe(handlers, NULL);
+
+  // just in case quick view is open on load
+  quickViewLayerReposition();
+
   // Make sure the time is displayed from the start
-  update_clock();
+  update_clock();  
 }
 
 static void main_window_unload(Window *window) {
