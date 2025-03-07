@@ -1,29 +1,116 @@
 [
-    { 
-      "type": "heading", 
-      "defaultValue": "Halcyon Settings" 
-    }, 
-    {
-      "type": "radiogroup",
-      "messageKey": "favorite_food",
-      "label": "Favorite Food",
-      "options": [
-          { 
-          "label": "Sushi", 
-          "value": "sushi" 
-          },
-          { 
-          "label": "Pizza", 
-          "value": "pizza" 
-          },
-          { 
-          "label": "Retro Green", 
-          "value": "greenCats" 
-          }
-      ]
+  {
+    "type": "section",
+    "items": [
+      { "type": "heading", "defaultValue": "Watchface Colors" },
+      {
+        "type": "color",
+        "messageKey": "SETTING_TIME_COLOR",
+        "defaultValue": "FFFFFF",
+        "sunlight": false,
+        "label": "Time Color"
       },
-    {
-      "type": "submit",
-      "defaultValue": "Save"
-    }
-  ]
+      {
+        "type": "color",
+        "messageKey": "SETTING_SUBTEXT_PRIMARY_COLOR",
+        "defaultValue": "AAAAAA",
+        "sunlight": false,
+        "label": "Subtext Primary Color"
+      },
+      {
+        "type": "color",
+        "messageKey": "SETTING_SUBTEXT_SECONDARY_COLOR",
+        "defaultValue": "555555",
+        "sunlight": false,
+        "label": "Subtext Secondary Color"
+      },
+      {
+        "type": "color",
+        "messageKey": "SETTING_BG_COLOR",
+        "defaultValue": "000000",
+        "sunlight": false,
+        "label": "Background Color"
+      },
+      {
+        "type": "color",
+        "messageKey": "SETTING_PIP_COLOR_PRIMARY",
+        "defaultValue": "FFAA00",
+        "sunlight": false,
+        "label": "PIP Primary Color"
+      },
+      {
+        "type": "color",
+        "messageKey": "SETTING_PIP_COLOR_SECONDARY",
+        "defaultValue": "555500",
+        "sunlight": false,
+        "label": "PIP Secondary Color"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      { "type": "heading", "defaultValue": "Ring & Sun Colors" },
+      {
+        "type": "color",
+        "messageKey": "SETTING_RING_STROKE_COLOR",
+        "defaultValue": "FFFFFF",
+        "sunlight": false,
+        "label": "Ring Stroke Color"
+      },
+      {
+        "type": "color",
+        "messageKey": "SETTING_TWILIGHT_STROKE_COLOR",
+        "defaultValue": "FF00FF",
+        "sunlight": false,
+        "label": "Twilight Stroke Color"
+      },
+      {
+        "type": "color",
+        "messageKey": "SETTING_RING_NIGHT_COLOR",
+        "defaultValue": "000055",
+        "sunlight": false,
+        "label": "Ring Night Color"
+      },
+      {
+        "type": "color",
+        "messageKey": "SETTING_RING_DAY_COLOR",
+        "defaultValue": "FFFF00",
+        "sunlight": false,
+        "label": "Ring Day Color"
+      },
+      {
+        "type": "color",
+        "messageKey": "SETTING_RING_SUNRISE_COLOR",
+        "defaultValue": "FF5500",
+        "sunlight": false,
+        "label": "Ring Sunrise Color"
+      },
+      {
+        "type": "color",
+        "messageKey": "SETTING_RING_SUNSET_COLOR",
+        "defaultValue": "FFAA00",
+        "sunlight": false,
+        "label": "Ring Sunset Color"
+      },
+      {
+        "type": "color",
+        "messageKey": "SETTING_SUN_STROKE_COLOR",
+        "defaultValue": "FFFFFF",
+        "sunlight": false,
+        "label": "Sun Stroke Color"
+      },
+      {
+        "type": "color",
+        "messageKey": "SETTING_SUN_FILL_COLOR",
+        "defaultValue": "FFFF00",
+        "sunlight": false,
+        "label": "Sun Fill Color"
+      }
+    ]
+  },
+  {
+    "type": "submit",
+    "defaultValue": "Save Settings"
+  }
+]

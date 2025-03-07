@@ -30,7 +30,21 @@
         "messageKeys": [
             "LOCATION_LAT",
             "LOCATION_LNG",
-            "LOCATION_GMT_OFFSET"
+            "LOCATION_GMT_OFFSET",
+            "SETTING_TIME_COLOR",
+            "SETTING_SUBTEXT_PRIMARY_COLOR",
+            "SETTING_SUBTEXT_SECONDARY_COLOR",
+            "SETTING_BG_COLOR",
+            "SETTING_PIP_COLOR_PRIMARY",
+            "SETTING_PIP_COLOR_SECONDARY",
+            "SETTING_RING_STROKE_COLOR",
+            "SETTING_TWILIGHT_STROKE_COLOR",
+            "SETTING_RING_NIGHT_COLOR",
+            "SETTING_RING_DAY_COLOR",
+            "SETTING_RING_SUNRISE_COLOR",
+            "SETTING_RING_SUNSET_COLOR",
+            "SETTING_SUN_STROKE_COLOR",
+            "SETTING_SUN_FILL_COLOR"
         ],
         "resources": {
             "media": [
@@ -44,6 +58,7 @@
         }
     },
     "dependencies": {
-        "pebble-clay": "^1.0.4"
+        "pebble-clay": "^1.0.4",
+        "pebble-clay-preview-component": "^0.0.2"
     }
 }

@@ -200,6 +200,10 @@ static void update_clock() {
     }
   }
 
+  // ensure time and date layers have the most up to date settings
+  text_layer_set_text_color(timeLayer, globalSettings.timeColor);
+  text_layer_set_text_color(dateLayer, globalSettings.subtextPrimaryColor);
+
   // display this time on the TextLayer
   text_layer_set_text(timeLayer, timeText);
 
@@ -261,6 +265,9 @@ static void center_layer_update_proc(Layer *layer, GContext *ctx) {
 // settings might have changed, so recalculate solar data and refresh screen
 void onSettingsChanged() {
     currentSolarInfo = solarUtils_recalculateSolarData();
+
+    APP_LOG(APP_LOG_LEVEL_INFO, "I guess settings canged");
+    
     update_clock();
 }
 
@@ -292,7 +299,6 @@ static void main_window_load(Window *window) {
       text_layer_create(GRect(0, 34, bounds.size.w - EDGE_THICKNESS * 2, 40));
   ;
   text_layer_set_background_color(timeLayer, GColorClear);
-  text_layer_set_text_color(timeLayer, globalSettings.timeColor);
   text_layer_set_font(timeLayer, timeFont);
   text_layer_set_text_alignment(timeLayer, GTextAlignmentCenter);
   layer_add_child(centerLayer, text_layer_get_layer(timeLayer));
@@ -301,7 +307,6 @@ static void main_window_load(Window *window) {
   dateLayer =
       text_layer_create(GRect(0, 68, bounds.size.w - EDGE_THICKNESS * 2, 40));
   text_layer_set_background_color(dateLayer, GColorClear);
-  text_layer_set_text_color(dateLayer, globalSettings.subtextPrimaryColor);
   text_layer_set_font(dateLayer, dateFont);
   text_layer_set_text_alignment(dateLayer, GTextAlignmentCenter);
   layer_add_child(centerLayer, text_layer_get_layer(dateLayer));
@@ -320,13 +325,15 @@ static void main_window_unload(Window *window) {
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_clock();
+
+
 }
 
-static void day_tick_handler(struct tm *tick_time, TimeUnits units_changed) {
-  // make sure we recalculate once per day
-  currentSolarInfo = solarUtils_recalculateSolarData();
-  update_clock();
-}
+// static void day_tick_handler(struct tm *tick_time, TimeUnits units_changed) {
+//   // make sure we recalculate once per day
+//   currentSolarInfo = solarUtils_recalculateSolarData();
+//   update_clock();
+// }
 
 static void init() {
   #ifdef FORCE_BACKLIGHT
@@ -351,7 +358,7 @@ static void init() {
 
   // Register with TickTimerService
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
-  tick_timer_service_subscribe(DAY_UNIT, day_tick_handler);
+  // tick_timer_service_subscribe(DAY_UNIT, day_tick_handler);
 }
 
 static void deinit() { window_destroy(mainWindow); }
