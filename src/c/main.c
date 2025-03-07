@@ -11,6 +11,9 @@
 
 // various metrics
 #define EDGE_THICKNESS 19
+#define TIME_LAYER_YPOS PBL_IF_ROUND_ELSE(40, 34)
+#define DATE_LAYER_YPOS PBL_IF_ROUND_ELSE(79, 68)
+#define TEXT_LAYER_HEIGHT 40
 
 // windows and layers
 static Window *mainWindow;
@@ -31,24 +34,21 @@ static char dateText[DATE_STR_LEN];
 
 static SolarInfo currentSolarInfo;
 
-// please ignore this hilariously overcomplicated quick view code
+// Resize literally everything on quick view 
+// I wonder if there was some more efficient way to do this
 static void quickViewLayerReposition() {
   GRect full_bounds = layer_get_bounds(windowLayer);
   GRect bounds = layer_get_unobstructed_bounds(windowLayer);
 
-  // Calculate new height 
   int new_height = bounds.size.h;
   int diff = full_bounds.size.h - bounds.size.h;
   int shift_up = diff / 2;
 
-  // Resize shiftingLayer 
   GRect shiftingFrame = GRect(0, 0, full_bounds.size.w, new_height);
   layer_set_frame(shiftingLayer, shiftingFrame);
 
-  // Resize ringLayer to match shiftingLayer's new size
   layer_set_frame(ringLayer, GRect(0, 0, shiftingFrame.size.w, shiftingFrame.size.h));
 
-  // Resize centerLayer proportionally (keeping top alignment)
   int new_center_height = new_height - 2 * EDGE_THICKNESS;
   if (new_center_height < 0) new_center_height = 0; // Prevent negative values
   GRect centerFrame = GRect(
@@ -56,36 +56,34 @@ static void quickViewLayerReposition() {
       shiftingFrame.size.w - 2 * EDGE_THICKNESS, new_center_height);
   layer_set_frame(centerLayer, centerFrame);
 
-  // Shift text layers upward
   layer_set_frame(text_layer_get_layer(timeLayer),
-      GRect(0, 34 - shift_up, full_bounds.size.w - EDGE_THICKNESS * 2, 40));
+      GRect(0, TIME_LAYER_YPOS - shift_up, full_bounds.size.w - EDGE_THICKNESS * 2, TEXT_LAYER_HEIGHT));
   layer_set_frame(text_layer_get_layer(dateLayer),
-      GRect(0, 68 - shift_up, full_bounds.size.w - EDGE_THICKNESS * 2, 40));
+      GRect(0, DATE_LAYER_YPOS - shift_up, full_bounds.size.w - EDGE_THICKNESS * 2, TEXT_LAYER_HEIGHT));
 
-  // Redraw layers
   layer_mark_dirty(ringLayer);
   layer_mark_dirty(centerLayer);
 }
 
 static GPoint getPipPosition(int id, int numPips, GRect bounds) {
-  int edgePips = numPips / 4; // Number of pips per edge
+  int edgePips = numPips / 4;
   int x, y;
 
   if (id < edgePips) {
-    // Top edge
+    // top edge
     x = bounds.origin.x + (id * bounds.size.w / edgePips);
     y = bounds.origin.y;
   } else if (id < 2 * edgePips) {
-    // Right edge
+    // right edge
     x = bounds.origin.x + bounds.size.w;
     y = bounds.origin.y + ((id - edgePips) * bounds.size.h / edgePips);
   } else if (id < 3 * edgePips) {
-    // Bottom edge
+    // bottom edge
     x = bounds.origin.x + bounds.size.w -
         ((id - 2 * edgePips) * bounds.size.w / edgePips);
     y = bounds.origin.y + bounds.size.h;
   } else {
-    // Left edge
+    // left edge
     x = bounds.origin.x;
     y = bounds.origin.y + bounds.size.h -
         ((id - 3 * edgePips) * bounds.size.h / edgePips);
@@ -95,7 +93,7 @@ static GPoint getPipPosition(int id, int numPips, GRect bounds) {
 }
 
 GRect snap_to_edges(GRect rect, GRect bounds, int thickness) {
-    // Vertical snapping
+    // vertical snapping
     if (rect.origin.y + rect.size.h > bounds.size.h - thickness) {
         rect.size.h = bounds.size.h - rect.origin.y;
     }
@@ -104,7 +102,7 @@ GRect snap_to_edges(GRect rect, GRect bounds, int thickness) {
         rect.origin.y = 0;
     }
 
-    // Horizontal snapping
+    // horizontal snapping
     if (rect.origin.x + rect.size.w > bounds.size.w - thickness) {
         rect.size.w = bounds.size.w - rect.origin.x;
     }
@@ -116,6 +114,60 @@ GRect snap_to_edges(GRect rect, GRect bounds, int thickness) {
     return rect;
 }
 
+#ifdef PBL_ROUND
+static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
+  GRect bounds = layer_get_bounds(layer);
+  int thickness = 16;
+  int strokeWidth = 3;
+  int hourShift = 12;
+
+  GRect innerBounds = GRect(bounds.origin.x + thickness / 2, bounds.origin.y + thickness / 2, bounds.size.w - thickness, bounds.size.h - thickness);
+
+  // Draw the outer ring
+  graphics_context_set_fill_color(ctx, globalSettings.ringNightColor);
+  graphics_fill_radial(ctx, bounds, GOvalScaleModeFitCircle, thickness, 0, TRIG_MAX_ANGLE);
+
+  // Get time and sun position
+  time_t now = time(NULL);
+  struct tm *timeInfo = localtime(&now);
+  int hour = timeInfo->tm_hour;
+  int minute = timeInfo->tm_min;
+
+  // Shift time by 12 hours so that it starts at the bottom
+  // Yes it needs to be 12 hours for round and 15 for square
+  // I blame math
+  int shiftedHour = (hour + hourShift) % 24;
+  float progress = ((shiftedHour % 24) + (minute / 60.0f)) / 24.0f;
+  
+  // Calculate sun position using polar coordinates
+  int angle = (int)(TRIG_MAX_ANGLE * progress);
+  GPoint sunPos = gpoint_from_polar(innerBounds, GOvalScaleModeFitCircle, angle);
+
+  // Apply the same 12-hour shift to the sunrise and sunset times
+  int shiftedSunriseMinute = (currentSolarInfo.sunriseMinute + hourShift * 60) % (24 * 60);
+  int shiftedSunsetMinute = (currentSolarInfo.sunsetMinute + hourShift * 60) % (24 * 60);
+
+  // Calculate sunrise and sunset positions using polar coordinates
+  int dayStartAngle = (int)((shiftedSunriseMinute / 1440.0f) * TRIG_MAX_ANGLE);
+  int dayEndAngle = (int)((shiftedSunsetMinute / 1440.0f) * TRIG_MAX_ANGLE);
+  
+  // Draw the sunrise and sunset arcs
+  graphics_context_set_stroke_color(ctx, globalSettings.ringStrokeColor);
+  graphics_context_set_stroke_width(ctx, strokeWidth);
+
+  graphics_context_set_fill_color(ctx, globalSettings.ringSunriseColor);
+  graphics_fill_radial(ctx, bounds, GOvalScaleModeFitCircle, thickness, dayStartAngle, dayStartAngle + TRIG_MAX_ANGLE / 30); // Short arc for sunrise
+  
+  graphics_context_set_fill_color(ctx, globalSettings.ringSunsetColor);
+  graphics_fill_radial(ctx, bounds, GOvalScaleModeFitCircle, thickness, dayEndAngle - TRIG_MAX_ANGLE / 30, dayEndAngle); // Short arc for sunset
+  
+  // Draw the sun position
+  graphics_context_set_fill_color(ctx, globalSettings.sunFillColor);
+  graphics_context_set_stroke_color(ctx, globalSettings.sunStrokeColor);
+  graphics_fill_circle(ctx, sunPos, 7);
+  graphics_draw_circle(ctx, sunPos, 7);
+}
+#else
 static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
   GRect bounds = layer_get_bounds(layer);
   int thickness = 16;
@@ -205,14 +257,13 @@ static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
                                 twilightEndRect.size.h  + 4)
                     );
 
-
   // cue the sun! 
   graphics_context_set_fill_color(ctx, globalSettings.sunFillColor);
   graphics_context_set_stroke_color(ctx, globalSettings.sunStrokeColor);
   graphics_fill_circle(ctx, sunPos, 7);
   graphics_draw_circle(ctx, sunPos, 7);
 }
-
+#endif
 
 static void update_clock() {
   time_t rawTime;
@@ -263,7 +314,12 @@ static void update_clock() {
 static void center_layer_update_proc(Layer *layer, GContext *ctx) {
   GRect bounds = layer_get_bounds(layer);
   graphics_context_set_fill_color(ctx, globalSettings.bgColor);
+  
+  #ifdef PBL_ROUND
+  graphics_fill_radial(ctx, bounds, GOvalScaleModeFitCircle, bounds.size.w, 0, TRIG_MAX_ANGLE);
+  #else
   graphics_fill_rect(ctx, bounds, 0, GCornerNone);
+  #endif
 
   int innerPadding = 0;
 
@@ -322,7 +378,7 @@ static void onUnobstructedAreaDidChange(void *context) {
 
 static void main_window_load(Window *window) {
   //  Get fonts
-  timeFont = fonts_get_system_font(FONT_KEY_LECO_32_BOLD_NUMBERS);
+  timeFont = fonts_get_system_font(PBL_IF_ROUND_ELSE(FONT_KEY_LECO_38_BOLD_NUMBERS, FONT_KEY_LECO_32_BOLD_NUMBERS));
   dateFont = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
 
   // Get information about the Window
@@ -349,7 +405,7 @@ static void main_window_load(Window *window) {
 
   // Create time TextLayer
   timeLayer =
-      text_layer_create(GRect(0, 34, bounds.size.w - EDGE_THICKNESS * 2, 40));
+      text_layer_create(GRect(0, TIME_LAYER_YPOS, bounds.size.w - EDGE_THICKNESS * 2, TEXT_LAYER_HEIGHT));
   ;
   text_layer_set_background_color(timeLayer, GColorClear);
   text_layer_set_font(timeLayer, timeFont);
@@ -358,7 +414,7 @@ static void main_window_load(Window *window) {
 
   // Create date TextLayer
   dateLayer =
-      text_layer_create(GRect(0, 68, bounds.size.w - EDGE_THICKNESS * 2, 40));
+      text_layer_create(GRect(0, DATE_LAYER_YPOS, bounds.size.w - EDGE_THICKNESS * 2, TEXT_LAYER_HEIGHT));
   text_layer_set_background_color(dateLayer, GColorClear);
   text_layer_set_font(dateLayer, dateFont);
   text_layer_set_text_alignment(dateLayer, GTextAlignmentCenter);
