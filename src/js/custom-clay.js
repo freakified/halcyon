@@ -1,54 +1,145 @@
 module.exports = function (minified) {
+  // TODO: re-add this
   var clayConfig = this;
   var _ = minified._;
   var $ = minified.$;
 
   // Define presets
   var presets = {
-    classic: {
-      SETTING_TIME_COLOR: "FFFFFF",
-      SETTING_SUBTEXT_PRIMARY_COLOR: "AAAAAA",
+    default: {
+      SETTING_TIME_COLOR: "000000",
+      SETTING_SUBTEXT_PRIMARY_COLOR: "000000",
       SETTING_SUBTEXT_SECONDARY_COLOR: "555555",
-      SETTING_BG_COLOR: "000000",
-      SETTING_PIP_COLOR_PRIMARY: "FFAA00",
-      SETTING_PIP_COLOR_SECONDARY: "555500",
-      SETTING_RING_STROKE_COLOR: "FFFFFF",
-      SETTING_RING_NIGHT_COLOR: "000055",
-      SETTING_RING_DAY_COLOR: "FFFF00",
-      SETTING_RING_SUNRISE_COLOR: "FF5500",
+      SETTING_BG_COLOR: "FFFFFF",
+      SETTING_PIP_COLOR_PRIMARY: "000000",
+      SETTING_PIP_COLOR_SECONDARY: "AAAAAA",
+      SETTING_RING_STROKE_COLOR: "000000",
+      SETTING_RING_NIGHT_COLOR: "0055AA",
+      SETTING_RING_DAY_COLOR: "00AAFF",
+      SETTING_RING_SUNRISE_COLOR: "FFAAAA",
       SETTING_RING_SUNSET_COLOR: "FFAA00",
-      SETTING_SUN_STROKE_COLOR: "FFFFFF",
+      SETTING_SUN_STROKE_COLOR: "000000",
       SETTING_SUN_FILL_COLOR: "FFFF00"
     },
-    dark: {
-      SETTING_TIME_COLOR: "FFFFFF",
-      SETTING_SUBTEXT_PRIMARY_COLOR: "888888",
-      SETTING_SUBTEXT_SECONDARY_COLOR: "444444",
+    orangeDreams: {
+      SETTING_TIME_COLOR: "FF5500",
+      SETTING_SUBTEXT_PRIMARY_COLOR: "FF5500",
+      SETTING_SUBTEXT_SECONDARY_COLOR: "AA0000",
       SETTING_BG_COLOR: "000000",
-      SETTING_PIP_COLOR_PRIMARY: "777777",
-      SETTING_PIP_COLOR_SECONDARY: "333333",
-      SETTING_RING_STROKE_COLOR: "AAAAAA",
-      SETTING_RING_NIGHT_COLOR: "222222",
-      SETTING_RING_DAY_COLOR: "999999",
-      SETTING_RING_SUNRISE_COLOR: "666666",
-      SETTING_RING_SUNSET_COLOR: "888888",
-      SETTING_SUN_STROKE_COLOR: "CCCCCC",
-      SETTING_SUN_FILL_COLOR: "EEEEEE"
-    },
-    sunset: {
-      SETTING_TIME_COLOR: "FFAA00",
-      SETTING_SUBTEXT_PRIMARY_COLOR: "FF7700",
-      SETTING_SUBTEXT_SECONDARY_COLOR: "FF5500",
-      SETTING_BG_COLOR: "222222",
       SETTING_PIP_COLOR_PRIMARY: "FF5500",
-      SETTING_PIP_COLOR_SECONDARY: "FFAA00",
-      SETTING_RING_STROKE_COLOR: "FF7700",
-      SETTING_RING_NIGHT_COLOR: "660000",
-      SETTING_RING_DAY_COLOR: "FFAA00",
-      SETTING_RING_SUNRISE_COLOR: "FF5500",
-      SETTING_RING_SUNSET_COLOR: "FF2200",
-      SETTING_SUN_STROKE_COLOR: "FFDD99",
-      SETTING_SUN_FILL_COLOR: "FFFFAA"
+      SETTING_PIP_COLOR_SECONDARY: "AA0000",
+      SETTING_RING_STROKE_COLOR: "000000",
+      SETTING_RING_NIGHT_COLOR: "000000",
+      SETTING_RING_DAY_COLOR: "FF5500",
+      SETTING_RING_SUNRISE_COLOR: "AA0000",
+      SETTING_RING_SUNSET_COLOR: "AA0000",
+      SETTING_SUN_STROKE_COLOR: "000000",
+      SETTING_SUN_FILL_COLOR: "FF5500"
+    },
+    terminalGreen: {
+      "SETTING_TIME_COLOR": "00ff00",
+      "SETTING_SUBTEXT_PRIMARY_COLOR": "00ff00",
+      "SETTING_SUBTEXT_SECONDARY_COLOR": "00aa00",
+      "SETTING_BG_COLOR": "000000",
+      "SETTING_PIP_COLOR_PRIMARY": "00ff00",
+      "SETTING_PIP_COLOR_SECONDARY": "005500",
+      "SETTING_RING_STROKE_COLOR": "000000",
+      "SETTING_RING_NIGHT_COLOR": "000000",
+      "SETTING_RING_DAY_COLOR": "00ff00",
+      "SETTING_RING_SUNRISE_COLOR": "005500",
+      "SETTING_RING_SUNSET_COLOR": "005500",
+      "SETTING_SUN_STROKE_COLOR": "000000",
+      "SETTING_SUN_FILL_COLOR": "00ff00"
+    },
+    mauveAlert: {
+      "SETTING_TIME_COLOR": "ffffff",
+      "SETTING_SUBTEXT_PRIMARY_COLOR": "ffffff",
+      "SETTING_SUBTEXT_SECONDARY_COLOR": "ffffff",
+      "SETTING_BG_COLOR": "aa00aa",
+      "SETTING_PIP_COLOR_PRIMARY": "000000",
+      "SETTING_PIP_COLOR_SECONDARY": "550055",
+      "SETTING_RING_STROKE_COLOR": "000000",
+      "SETTING_RING_NIGHT_COLOR": "550055",
+      "SETTING_RING_DAY_COLOR": "aa55aa",
+      "SETTING_RING_SUNRISE_COLOR": "aa00aa",
+      "SETTING_RING_SUNSET_COLOR": "aa00aa",
+      "SETTING_SUN_STROKE_COLOR": "000000",
+      "SETTING_SUN_FILL_COLOR": "ffffff"
+    },
+    firework: {
+      "SETTING_TIME_COLOR": "ffffff",
+      "SETTING_SUBTEXT_PRIMARY_COLOR": "ffaa00",
+      "SETTING_SUBTEXT_SECONDARY_COLOR": "aa0000",
+      "SETTING_BG_COLOR": "000000",
+      "SETTING_PIP_COLOR_PRIMARY": "ff5500",
+      "SETTING_PIP_COLOR_SECONDARY": "aa0000",
+      "SETTING_RING_STROKE_COLOR": "000000",
+      "SETTING_RING_NIGHT_COLOR": "000000",
+      "SETTING_RING_DAY_COLOR": "000000",
+      "SETTING_RING_SUNRISE_COLOR": "aa0000",
+      "SETTING_RING_SUNSET_COLOR": "aa0000",
+      "SETTING_SUN_STROKE_COLOR": "000000",
+      "SETTING_SUN_FILL_COLOR": "ffaa00"
+    },
+    tempTheme1: {
+      "SETTING_TIME_COLOR": "000000",
+      "SETTING_SUBTEXT_PRIMARY_COLOR": "000000",
+      "SETTING_SUBTEXT_SECONDARY_COLOR": "aaaaaa",
+      "SETTING_BG_COLOR": "ffffff",
+      "SETTING_PIP_COLOR_PRIMARY": "000000",
+      "SETTING_PIP_COLOR_SECONDARY": "aaaaaa",
+      "SETTING_RING_STROKE_COLOR": "ffffff",
+      "SETTING_RING_NIGHT_COLOR": "0055aa",
+      "SETTING_RING_DAY_COLOR": "ffffff",
+      "SETTING_RING_SUNRISE_COLOR": "00aaff",
+      "SETTING_RING_SUNSET_COLOR": "00aaff",
+      "SETTING_SUN_STROKE_COLOR": "000000",
+      "SETTING_SUN_FILL_COLOR": "ffff00"
+    },
+    tempTheme2: {
+      "SETTING_TIME_COLOR": "000000",
+      "SETTING_SUBTEXT_PRIMARY_COLOR": "000000",
+      "SETTING_SUBTEXT_SECONDARY_COLOR": "555555",
+      "SETTING_BG_COLOR": "ffffff",
+      "SETTING_PIP_COLOR_PRIMARY": "000000",
+      "SETTING_PIP_COLOR_SECONDARY": "aaaaaa",
+      "SETTING_RING_STROKE_COLOR": "ffffff",
+      "SETTING_RING_NIGHT_COLOR": "ff00aa",
+      "SETTING_RING_DAY_COLOR": "ffffff",
+      "SETTING_RING_SUNRISE_COLOR": "ffaaaa",
+      "SETTING_RING_SUNSET_COLOR": "ffaaaa",
+      "SETTING_SUN_STROKE_COLOR": "000000",
+      "SETTING_SUN_FILL_COLOR": "ffff00"
+    },
+    tempTheme3: {
+      "SETTING_TIME_COLOR": "ffffff",
+      "SETTING_SUBTEXT_PRIMARY_COLOR": "ffffff",
+      "SETTING_SUBTEXT_SECONDARY_COLOR": "ffffff",
+      "SETTING_BG_COLOR": "000055",
+      "SETTING_PIP_COLOR_PRIMARY": "ffffff",
+      "SETTING_PIP_COLOR_SECONDARY": "0055aa",
+      "SETTING_RING_STROKE_COLOR": "000000",
+      "SETTING_RING_NIGHT_COLOR": "0000aa",
+      "SETTING_RING_DAY_COLOR": "00aaff",
+      "SETTING_RING_SUNRISE_COLOR": "0055ff",
+      "SETTING_RING_SUNSET_COLOR": "0055ff",
+      "SETTING_SUN_STROKE_COLOR": "ffffff",
+      "SETTING_SUN_FILL_COLOR": "00aaff"
+    },
+    tempTheme4: {
+      "SETTING_TIME_COLOR": "000000",
+      "SETTING_SUBTEXT_PRIMARY_COLOR": "000000",
+      "SETTING_SUBTEXT_SECONDARY_COLOR": "550000",
+      "SETTING_BG_COLOR": "ffff00",
+      "SETTING_PIP_COLOR_PRIMARY": "aa5500",
+      "SETTING_PIP_COLOR_SECONDARY": "ffaa00",
+      "SETTING_RING_STROKE_COLOR": "ffff00",
+      "SETTING_RING_NIGHT_COLOR": "aa5500",
+      "SETTING_RING_DAY_COLOR": "ffff00",
+      "SETTING_RING_SUNRISE_COLOR": "ffaa00",
+      "SETTING_RING_SUNSET_COLOR": "ffaa00",
+      "SETTING_SUN_STROKE_COLOR": "aa5500",
+      "SETTING_SUN_FILL_COLOR": "ffaa55"
     }
   };
 
@@ -153,7 +244,7 @@ module.exports = function (minified) {
   }
 
   function attachColorListeners() {
-    var colorKeys = Object.keys(presets.classic);
+    var colorKeys = Object.keys(presets.default);
 
     colorKeys.forEach(function (key) {
       var colorPicker = clayConfig.getItemByMessageKey(key);
@@ -166,6 +257,37 @@ module.exports = function (minified) {
     });
   }
 
+  function exportTheme() {
+    var colorKeys = Object.keys(presets.default);
+    var themeData = {};
+  
+    // Convert all colors to hex
+    colorKeys.forEach(function (key) {
+      var colorValue = clayConfig.getItemByMessageKey(key).get();
+  
+      // Ensure it's always in #RRGGBB format
+      if (typeof colorValue === 'number') {
+        themeData[key] = convertToHexFromDecimal(colorValue); // Convert decimal to hex
+      } else {
+        themeData[key] = `#${colorValue}`; // Ensure hex is prefixed with #
+      }
+    });
+  
+    // Convert to JSON
+    var jsonData = JSON.stringify(themeData, null, 2);
+    var blob = new Blob([jsonData], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+  
+    // Create a download link
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "watchface-theme.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function () {
     var presetSelector = clayConfig.getItemByMessageKey('SETTING_PRESET');
     presetSelector.on('change', applyPreset);
@@ -173,10 +295,19 @@ module.exports = function (minified) {
     applyPreset();
     attachColorListeners();
     injectPresetSVGs();
-    var colorKeys = Object.keys(presets.classic);
+    var colorKeys = Object.keys(presets.default);
     colorKeys.forEach(function (key) {
       var colorValue = clayConfig.getItemByMessageKey(key).get();
       updateSVGColors(key, colorValue);
     });
+
+    // Create export button
+    var exportButton = document.createElement("button");
+    exportButton.textContent = "Export Theme";
+    exportButton.style.cssText = "display: block; margin: 10px auto; padding: 10px; font-size: 16px;";
+    exportButton.onclick = exportTheme;
+
+    // Append to settings page
+    document.body.appendChild(exportButton);
   });
 };

@@ -6,19 +6,44 @@
       {
         "type": "radiogroup",
         "messageKey": "SETTING_PRESET",
-        "defaultValue": "custom",
+        "defaultValue": "default",
         "options": [
           {
-            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='classic'></div>Classic</div>",
-            "value": "classic"
+            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='default'></div>Solar (Default)</div>",
+            "value": "default"
           },
           {
-            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='dark'></div>Dark</div>",
-            "value": "dark"
+            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='orangeDreams'></div>Orange Dreams</div>",
+            "value": "orangeDreams"
           },
           {
-            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='sunset'></div>Sunset</div>",
-            "value": "sunset"
+            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='terminalGreen'></div>Terminal Green</div>",
+            "value": "terminalGreen"
+          },
+          {
+            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='tempTheme1'></div>Call of the Sea</div>",
+            "value": "tempTheme1"
+          },
+          {
+            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='tempTheme2'></div>A Glass of Rosé</div>",
+            "value": "tempTheme2"
+          },
+          {
+            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='firework'></div>Firework</div>",
+            "value": "firework"
+          },
+
+          {
+            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='tempTheme3'></div>Into the Deep</div>",
+            "value": "tempTheme3"
+          },
+          {
+            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='tempTheme4'></div>Sands of Time</div>",
+            "value": "tempTheme4"
+          },
+          {
+            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='mauveAlert'></div>Mauve Alert</div>",
+            "value": "mauveAlert"
           },
           { "label": "Custom...", "value": "custom" }
         ]
@@ -47,6 +72,7 @@
         "messageKey": "SETTING_SUBTEXT_SECONDARY_COLOR",
         "defaultValue": "555555",
         "sunlight": false,
+
         "label": "Widget Text Color"
       },
       {
@@ -55,6 +81,13 @@
         "defaultValue": "000000",
         "sunlight": false,
         "label": "Background Color"
+      },
+      {
+        "type": "color",
+        "messageKey": "SETTING_RING_STROKE_COLOR",
+        "defaultValue": "FFFFFF",
+        "sunlight": false,
+        "label": "Ring Outline Color"
       },
       {
         "type": "color",
@@ -72,10 +105,10 @@
       },
       {
         "type": "color",
-        "messageKey": "SETTING_RING_STROKE_COLOR",
-        "defaultValue": "FFFFFF",
+        "messageKey": "SETTING_RING_DAY_COLOR",
+        "defaultValue": "FFFF00",
         "sunlight": false,
-        "label": "Ring Outline Color"
+        "label": "Ring Color: Day"
       },
       {
         "type": "color",
@@ -83,13 +116,6 @@
         "defaultValue": "000055",
         "sunlight": false,
         "label": "Ring Color: Night"
-      },
-      {
-        "type": "color",
-        "messageKey": "SETTING_RING_DAY_COLOR",
-        "defaultValue": "FFFF00",
-        "sunlight": false,
-        "label": "Ring Color: Day"
       },
       {
         "type": "color",
@@ -107,17 +133,17 @@
       },
       {
         "type": "color",
-        "messageKey": "SETTING_SUN_FILL_COLOR",
-        "defaultValue": "FFFF00",
-        "sunlight": false,
-        "label": "Sun Color"
-      },
-      {
-        "type": "color",
         "messageKey": "SETTING_SUN_STROKE_COLOR",
         "defaultValue": "FFFFFF",
         "sunlight": false,
         "label": "Sun Outline Color"
+      },
+      {
+        "type": "color",
+        "messageKey": "SETTING_SUN_FILL_COLOR",
+        "defaultValue": "FFFF00",
+        "sunlight": false,
+        "label": "Sun Color"
       }
     ]
   },
