@@ -138,7 +138,7 @@ static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
 
   // Calculate positioning of twilight interface blocks
   int boxSize = thickness;
-  graphics_context_set_stroke_color(ctx, globalSettings.twilightStrokeColor);
+  graphics_context_set_stroke_color(ctx, globalSettings.ringStrokeColor);
   graphics_context_set_stroke_width(ctx, strokeWidth);
 
   GRect twilightStartRect = GRect(dayStart.x - boxSize / 2, dayStart.y - boxSize / 2, boxSize, boxSize);
@@ -161,7 +161,7 @@ static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
   // draw sunset block
   graphics_context_set_fill_color(ctx, globalSettings.ringSunsetColor);
   graphics_fill_rect(ctx, twilightEndRect, 0, GCornerNone);
-    graphics_draw_rect(ctx,GRect(twilightEndRect.origin.x - 2,
+  graphics_draw_rect(ctx,GRect(twilightEndRect.origin.x - 2,
                                 twilightEndRect.origin.y - 2,
                                 twilightEndRect.size.w + 4,
                                 twilightEndRect.size.h  + 4)
@@ -200,7 +200,8 @@ static void update_clock() {
     }
   }
 
-  // ensure time and date layers have the most up to date settings
+  // ensure colors are updated based on settings
+  window_set_background_color(mainWindow, globalSettings.ringStrokeColor);
   text_layer_set_text_color(timeLayer, globalSettings.timeColor);
   text_layer_set_text_color(dateLayer, globalSettings.subtextPrimaryColor);
 

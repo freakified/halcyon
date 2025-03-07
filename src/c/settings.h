@@ -14,7 +14,6 @@
   #define DEFAULT_PIP_COLOR_PRIMARY       GColorBlack;
   #define DEFAULT_PIP_COLOR_SECONDARY     GColorLightGray;
   #define DEFAULT_RING_STROKE_COLOR       GColorBlack;
-  #define DEFAULT_TWILIGHT_STROKE_COLOR   GColorBlack;
   #define DEFAULT_RING_NIGHT_COLOR        GColorCobaltBlue;
   #define DEFAULT_RING_DAY_COLOR          GColorVividCerulean;
   #define DEFAULT_RING_SUNRISE_COLOR      GColorMelon;
@@ -28,7 +27,6 @@
   // #define DEFAULT_PIP_COLOR_PRIMARY       GColorOrange;
   // #define DEFAULT_PIP_COLOR_SECONDARY     GColorDarkCandyAppleRed;
   // #define DEFAULT_RING_STROKE_COLOR       GColorBlack;
-  // #define DEFAULT_TWILIGHT_STROKE_COLOR   GColorBlack;
   // #define DEFAULT_RING_NIGHT_COLOR        GColorBlack;
   // #define DEFAULT_RING_DAY_COLOR          GColorOrange;
   // #define DEFAULT_RING_SUNRISE_COLOR      GColorDarkCandyAppleRed;
@@ -43,7 +41,6 @@
   #define DEFAULT_PIP_COLOR_PRIMARY       GColorBlack;
   #define DEFAULT_PIP_COLOR_SECONDARY     GColorLightGray;
   #define DEFAULT_RING_STROKE_COLOR       GColorBlack;
-  #define DEFAULT_TWILIGHT_STROKE_COLOR   GColorBlack;
   #define DEFAULT_RING_NIGHT_COLOR        GColorBlack;
   #define DEFAULT_RING_DAY_COLOR          GColorWhite;
   #define DEFAULT_RING_SUNRISE_COLOR      GColorLightGray;
@@ -71,7 +68,6 @@ typedef struct {
   GColor pipColorPrimary;
   GColor pipColorSecondary;
   GColor ringStrokeColor;
-  GColor twilightStrokeColor;
   GColor ringNightColor;
   GColor ringDayColor;
   GColor ringSunriseColor;

@@ -2,7 +2,25 @@
   {
     "type": "section",
     "items": [
-      { "type": "heading", "defaultValue": "Watchface Colors" },
+      { "type": "heading", "defaultValue": "Color Presets" },
+      {
+        "type": "radiogroup",
+        "messageKey": "SETTING_PRESET",
+        "label": "Select a Preset",
+        "defaultValue": "custom",
+        "options": [
+          { "label": "Classic", "value": "classic" },
+          { "label": "Dark Mode", "value": "dark" },
+          { "label": "Sunset", "value": "sunset" },
+          { "label": "Custom", "value": "custom" }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      { "type": "heading", "defaultValue": "Customize Colors" },
       {
         "type": "color",
         "messageKey": "SETTING_TIME_COLOR",
@@ -44,26 +62,13 @@
         "defaultValue": "555500",
         "sunlight": false,
         "label": "PIP Secondary Color"
-      }
-    ]
-  },
-  {
-    "type": "section",
-    "items": [
-      { "type": "heading", "defaultValue": "Ring & Sun Colors" },
+      },
       {
         "type": "color",
         "messageKey": "SETTING_RING_STROKE_COLOR",
         "defaultValue": "FFFFFF",
         "sunlight": false,
         "label": "Ring Stroke Color"
-      },
-      {
-        "type": "color",
-        "messageKey": "SETTING_TWILIGHT_STROKE_COLOR",
-        "defaultValue": "FF00FF",
-        "sunlight": false,
-        "label": "Twilight Stroke Color"
       },
       {
         "type": "color",

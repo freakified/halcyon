@@ -55,7 +55,6 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
   Tuple *pipColorPrimary_tuple = dict_find(iterator, MESSAGE_KEY_SETTING_PIP_COLOR_PRIMARY);
   Tuple *pipColorSecondary_tuple = dict_find(iterator, MESSAGE_KEY_SETTING_PIP_COLOR_SECONDARY);
   Tuple *ringStrokeColor_tuple = dict_find(iterator, MESSAGE_KEY_SETTING_RING_STROKE_COLOR);
-  Tuple *twilightStrokeColor_tuple = dict_find(iterator, MESSAGE_KEY_SETTING_TWILIGHT_STROKE_COLOR);
   Tuple *ringNightColor_tuple = dict_find(iterator, MESSAGE_KEY_SETTING_RING_NIGHT_COLOR);
   Tuple *ringDayColor_tuple = dict_find(iterator, MESSAGE_KEY_SETTING_RING_DAY_COLOR);
   Tuple *ringSunriseColor_tuple = dict_find(iterator, MESSAGE_KEY_SETTING_RING_SUNRISE_COLOR);
@@ -89,10 +88,6 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
 
   if(ringStrokeColor_tuple != NULL) {
     globalSettings.ringStrokeColor = GColorFromHEX(ringStrokeColor_tuple->value->int32);
-  }
-
-  if(twilightStrokeColor_tuple != NULL) {
-    globalSettings.twilightStrokeColor = GColorFromHEX(twilightStrokeColor_tuple->value->int32);
   }
 
   if(ringNightColor_tuple != NULL) {

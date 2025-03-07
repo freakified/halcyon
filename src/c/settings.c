@@ -23,7 +23,6 @@ void Settings_loadFromStorage() {
   globalSettings.pipColorPrimary = DEFAULT_PIP_COLOR_PRIMARY;
   globalSettings.pipColorSecondary = DEFAULT_PIP_COLOR_SECONDARY;
   globalSettings.ringStrokeColor = DEFAULT_RING_STROKE_COLOR;
-  globalSettings.twilightStrokeColor = DEFAULT_TWILIGHT_STROKE_COLOR;
   globalSettings.ringNightColor = DEFAULT_RING_NIGHT_COLOR;
   globalSettings.ringDayColor = DEFAULT_RING_DAY_COLOR;
   globalSettings.ringSunriseColor = DEFAULT_RING_SUNRISE_COLOR;
