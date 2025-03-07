@@ -20,19 +20,6 @@
   #define DEFAULT_RING_SUNSET_COLOR       GColorChromeYellow;
   #define DEFAULT_SUN_STROKE_COLOR        GColorBlack;
   #define DEFAULT_SUN_FILL_COLOR          GColorYellow;
-  // #define DEFAULT_TIME_COLOR              GColorOrange;
-  // #define DEFAULT_SUBTEXT_PRIMARY_COLOR   GColorOrange;
-  // #define DEFAULT_SUBTEXT_SECONDARY_COLOR GColorDarkCandyAppleRed;
-  // #define DEFAULT_BG_COLOR                GColorBlack;
-  // #define DEFAULT_PIP_COLOR_PRIMARY       GColorOrange;
-  // #define DEFAULT_PIP_COLOR_SECONDARY     GColorDarkCandyAppleRed;
-  // #define DEFAULT_RING_STROKE_COLOR       GColorBlack;
-  // #define DEFAULT_RING_NIGHT_COLOR        GColorBlack;
-  // #define DEFAULT_RING_DAY_COLOR          GColorOrange;
-  // #define DEFAULT_RING_SUNRISE_COLOR      GColorDarkCandyAppleRed;
-  // #define DEFAULT_RING_SUNSET_COLOR       GColorDarkCandyAppleRed;
-  // #define DEFAULT_SUN_STROKE_COLOR        GColorBlack;
-  // #define DEFAULT_SUN_FILL_COLOR          GColorOrange;
 #else
   #define DEFAULT_TIME_COLOR              GColorBlack;
   #define DEFAULT_SUBTEXT_PRIMARY_COLOR   GColorBlack;

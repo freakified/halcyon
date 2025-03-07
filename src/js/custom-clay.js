@@ -51,7 +51,7 @@ module.exports = function (minified) {
       "SETTING_SUN_STROKE_COLOR": "000000",
       "SETTING_SUN_FILL_COLOR": "00ff00"
     },
-    mauveAlert: {
+    mauveTheme: {
       "SETTING_TIME_COLOR": "ffffff",
       "SETTING_SUBTEXT_PRIMARY_COLOR": "ffffff",
       "SETTING_SUBTEXT_SECONDARY_COLOR": "ffffff",
@@ -66,7 +66,7 @@ module.exports = function (minified) {
       "SETTING_SUN_STROKE_COLOR": "000000",
       "SETTING_SUN_FILL_COLOR": "ffffff"
     },
-    firework: {
+    fireworkTheme: {
       "SETTING_TIME_COLOR": "ffffff",
       "SETTING_SUBTEXT_PRIMARY_COLOR": "ffaa00",
       "SETTING_SUBTEXT_SECONDARY_COLOR": "aa0000",
@@ -81,7 +81,7 @@ module.exports = function (minified) {
       "SETTING_SUN_STROKE_COLOR": "000000",
       "SETTING_SUN_FILL_COLOR": "ffaa00"
     },
-    tempTheme1: {
+    lightOceanTheme: {
       "SETTING_TIME_COLOR": "000000",
       "SETTING_SUBTEXT_PRIMARY_COLOR": "000000",
       "SETTING_SUBTEXT_SECONDARY_COLOR": "aaaaaa",
@@ -96,7 +96,7 @@ module.exports = function (minified) {
       "SETTING_SUN_STROKE_COLOR": "000000",
       "SETTING_SUN_FILL_COLOR": "ffff00"
     },
-    tempTheme2: {
+    roseTheme: {
       "SETTING_TIME_COLOR": "000000",
       "SETTING_SUBTEXT_PRIMARY_COLOR": "000000",
       "SETTING_SUBTEXT_SECONDARY_COLOR": "555555",
@@ -111,7 +111,7 @@ module.exports = function (minified) {
       "SETTING_SUN_STROKE_COLOR": "000000",
       "SETTING_SUN_FILL_COLOR": "ffff00"
     },
-    tempTheme3: {
+    oceanTheme: {
       "SETTING_TIME_COLOR": "ffffff",
       "SETTING_SUBTEXT_PRIMARY_COLOR": "ffffff",
       "SETTING_SUBTEXT_SECONDARY_COLOR": "ffffff",
@@ -126,7 +126,7 @@ module.exports = function (minified) {
       "SETTING_SUN_STROKE_COLOR": "ffffff",
       "SETTING_SUN_FILL_COLOR": "00aaff"
     },
-    tempTheme4: {
+    sandTheme: {
       "SETTING_TIME_COLOR": "000000",
       "SETTING_SUBTEXT_PRIMARY_COLOR": "000000",
       "SETTING_SUBTEXT_SECONDARY_COLOR": "550000",

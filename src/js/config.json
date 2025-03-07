@@ -21,29 +21,29 @@
             "value": "terminalGreen"
           },
           {
-            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='tempTheme1'></div>Call of the Sea</div>",
-            "value": "tempTheme1"
+            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='lightOceanTheme'></div>Call of the Sea</div>",
+            "value": "lightOceanTheme"
           },
           {
-            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='tempTheme2'></div>A Glass of Rosé</div>",
-            "value": "tempTheme2"
+            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='roseTheme'></div>A Glass of Rosé</div>",
+            "value": "roseTheme"
           },
           {
-            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='firework'></div>Firework</div>",
-            "value": "firework"
+            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='fireworkTheme'></div>Firework</div>",
+            "value": "fireworkTheme"
           },
 
           {
-            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='tempTheme3'></div>Into the Deep</div>",
-            "value": "tempTheme3"
+            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='oceanTheme'></div>Into the Deep</div>",
+            "value": "oceanTheme"
           },
           {
-            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='tempTheme4'></div>Sands of Time</div>",
-            "value": "tempTheme4"
+            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='sandTheme'></div>Sands of Time</div>",
+            "value": "sandTheme"
           },
           {
-            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='mauveAlert'></div>Mauve Alert</div>",
-            "value": "mauveAlert"
+            "label": "<div style='display: flex; gap: 16px; align-items: center;'><div data-option-value='mauveTheme'></div>Mauve Alert</div>",
+            "value": "mauveTheme"
           },
           { "label": "Custom...", "value": "custom" }
         ]
