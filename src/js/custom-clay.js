@@ -52,72 +52,94 @@ module.exports = function (minified) {
     }
   };
 
-  clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function () {
-    var presetSelector = clayConfig.getItemByMessageKey('SETTING_PRESET');
+  function decimalToHex(decimalColor) {
+    return decimalColor.toString(16).padStart(2, '0');
+  }
 
-    function updateSVGColors(preset) {
-      var svgContainer = document.getElementById('svg-preview');
-      if (!svgContainer) return;
-    
-      // Loop through preset colors and update the SVG elements
-      Object.keys(presets[preset]).forEach(function (id) {
-        var element = svgContainer.querySelector('#' + id);
-        if (element) {
-          element.setAttribute('fill', '#' + presets[preset][id]); // Change fill color
-        }
-      });
+  function convertToHexFromDecimal(decimal) {
+    const r = (decimal >> 16) & 0xFF;
+    const g = (decimal >> 8) & 0xFF;
+    const b = decimal & 0xFF;
+    return `#${decimalToHex(r)}${decimalToHex(g)}${decimalToHex(b)}`;
+  }
+
+  function toggleCustomSection(show) {
+    var customFields = [
+      'custom_theme_heading',
+      'SETTING_TIME_COLOR',
+      'SETTING_SUBTEXT_PRIMARY_COLOR',
+      'SETTING_SUBTEXT_SECONDARY_COLOR',
+      'SETTING_BG_COLOR',
+      'SETTING_PIP_COLOR_PRIMARY',
+      'SETTING_PIP_COLOR_SECONDARY',
+      'SETTING_RING_STROKE_COLOR',
+      'SETTING_RING_NIGHT_COLOR',
+      'SETTING_RING_DAY_COLOR',
+      'SETTING_RING_SUNRISE_COLOR',
+      'SETTING_RING_SUNSET_COLOR',
+      'SETTING_SUN_STROKE_COLOR',
+      'SETTING_SUN_FILL_COLOR'
+    ].map(key => clayConfig.getItemByMessageKey(key));
+
+    customFields.forEach(item => {
+      if (item) {
+        show ? item.show() : item.hide();
+      }
+    });
+  }
+
+  function updateSVGColors(colorKey, colorValue) {
+    var svgContainer = document.getElementById('svg-preview');
+    if (!svgContainer) return;
+
+    var element = svgContainer.querySelector('#' + colorKey);
+    if (element) {
+      // Convert decimal color to hex if necessary
+      var hexColor = typeof colorValue === 'number' ? convertToHexFromDecimal(colorValue) : `#${colorValue}`;
+      element.setAttribute('fill', hexColor);
     }
+  }
 
-    function applyPreset() {
-      var selectedPreset = presetSelector.get();
-      if (selectedPreset === "custom") return; // Skip if custom
-      updateSVGColors(selectedPreset);
+  function applyPreset() {
+    var presetSelector = clayConfig.getItemByMessageKey('SETTING_PRESET');
+    var selectedPreset = presetSelector.get();
 
+    if (selectedPreset === "custom") {
+      toggleCustomSection(true);
+    } else {
+      toggleCustomSection(false);
+
+      // Apply the preset colors
       var colors = presets[selectedPreset];
       Object.keys(colors).forEach(function (key) {
         var item = clayConfig.getItemByMessageKey(key);
         if (item) {
-          item.set(colors[key]); // Update color pickers
+          item.set(colors[key]);
         }
+        updateSVGColors(key, colors[key]); // Update preview
       });
     }
+  }
 
+  function attachColorListeners() {
+    var colorKeys = Object.keys(presets.classic); // Use one preset to get all color keys
+
+    colorKeys.forEach(function (key) {
+      var colorPicker = clayConfig.getItemByMessageKey(key);
+      if (colorPicker) {
+        colorPicker.on('change', function () {
+          var newColor = colorPicker.get();
+          updateSVGColors(key, newColor);
+        });
+      }
+    });
+  }
+
+  clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function () {
+    var presetSelector = clayConfig.getItemByMessageKey('SETTING_PRESET');
     presetSelector.on('change', applyPreset);
+
+    applyPreset(); // Apply preset on load
+    attachColorListeners(); // Attach color change listeners
   });
 };
-
-// module.exports = function (minified) {
-//   var clayConfig = this;
-//   var _ = minified._;
-//   var $ = minified.$;
-//   var HTML = minified.HTML;
-
-// function decimalToHex(decimalColor) {
-//     return decimalColor.toString(16).padStart(2, '0');
-// }
-
-// // for some reason clay returns colors as decimals
-// function convertToHexFromDecimal(decimal) {
-//     // Extract Red, Green, and Blue components
-//     const r = (decimal >> 16) & 0xFF;
-//     const g = (decimal >> 8) & 0xFF;
-//     const b = decimal & 0xFF;
-
-//     // Convert each component to hex
-//     return `#${decimalToHex(r)}${decimalToHex(g)}${decimalToHex(b)}`;
-// }
-
-//   clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function () {
-//     var colorPicker = clayConfig.getItemByMessageKey('background_color');
-
-//     function updateColorPreview() {
-//       var newColor = convertToHexFromDecimal(colorPicker.get());
-//       console.log(newColor);
-//       document.getElementById('color-box').style.backgroundColor = newColor;
-//       // $('#color-box').set({ style: 'background:' + newColor });
-//     }
-
-//     colorPicker.on('change', updateColorPreview);
-//     updateColorPreview();
-//   });
-// };
