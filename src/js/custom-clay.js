@@ -55,9 +55,23 @@ module.exports = function (minified) {
   clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function () {
     var presetSelector = clayConfig.getItemByMessageKey('SETTING_PRESET');
 
+    function updateSVGColors(preset) {
+      var svgContainer = document.getElementById('svg-preview');
+      if (!svgContainer) return;
+    
+      // Loop through preset colors and update the SVG elements
+      Object.keys(presets[preset]).forEach(function (id) {
+        var element = svgContainer.querySelector('#' + id);
+        if (element) {
+          element.setAttribute('fill', '#' + presets[preset][id]); // Change fill color
+        }
+      });
+    }
+
     function applyPreset() {
       var selectedPreset = presetSelector.get();
       if (selectedPreset === "custom") return; // Skip if custom
+      updateSVGColors(selectedPreset);
 
       var colors = presets[selectedPreset];
       Object.keys(colors).forEach(function (key) {
