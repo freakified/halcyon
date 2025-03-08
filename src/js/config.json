@@ -98,7 +98,7 @@
         "defaultValue": "555555",
         "sunlight": false,
 
-        "label": "Widget Text Color"
+        "label": "Widget Text Color (Not yet implemented)"
       },
       {
         "type": "color",

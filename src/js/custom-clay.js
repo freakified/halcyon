@@ -328,17 +328,19 @@ module.exports = function (minified) {
   
     for (var i = 0; i < colorKeys.length; i++) {
       var key = colorKeys[i];
+  
       var colorPicker = clayConfig.getItemByMessageKey(key);
       if (colorPicker) {
-        colorPicker.on('change', function () {
-          var newColor = colorPicker.get();
-          updateSVGColors(key, newColor);
-        });
+        (function(localKey, localColorPicker) {
+          colorPicker.on('change', function () {
+            var newColor = localColorPicker.get();
+            updateSVGColors(localKey, newColor);
+          });
+        })(key, colorPicker); 
       }
     }
   }
   
-
   function exportTheme() {
     var colorKeys = Object.keys(presets.default);
     var themeData = {};
