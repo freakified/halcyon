@@ -1,10 +1,10 @@
 # Halcyon
+An analog-digital watchface featuring the solar day, created for [Rebble Hackathon 002](https://rebble.io/hackathon-002/).
 
 ![Example screenshot](example_screenshot_1.png)
 
 ### From the darkness, light once again emerges
 
-An analog-digital watchface featuring the solar day, created for [Rebble Hackathon 002](https://rebble.io/hackathon-002/).
 
 Halcyon represents the 24 hours of the day as a ring around the edges of your watch, highlighting the sunrise, sunset, and the position of the sun itself!
 
