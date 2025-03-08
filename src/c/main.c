@@ -1,10 +1,14 @@
+
 #include <pebble.h>
+
+// #define USE_FAKE_TIME
+// #define FORCE_BACKLIGHT
+
 #include "messaging.h"
 #include "settings.h"
 #include "solarUtils.h"
 #include "utils.h"
 
-// #define FORCE_BACKLIGHT
 #define FORCE_12H false
 #define TIME_STR_LEN 6
 #define DATE_STR_LEN 25
@@ -34,6 +38,35 @@ static char timeText[TIME_STR_LEN];
 static char dateText[DATE_STR_LEN];
 
 static SolarInfo currentSolarInfo;
+
+#ifdef USE_FAKE_TIME
+struct tm* getCurrentTime() {
+    static struct tm fakeTime = {0};
+
+    // Set fake time: Jan 1st, 10:38 AM
+    fakeTime.tm_year = 2025 - 1900;
+    fakeTime.tm_mon = 6;         
+    fakeTime.tm_mday = 1;
+    fakeTime.tm_hour = 10;
+    fakeTime.tm_min = 38;
+    fakeTime.tm_sec = 0;
+
+    mktime(&fakeTime);
+
+    return &fakeTime;
+}
+#else
+struct tm* getCurrentTime() {
+    static struct tm timeInfo;
+    time_t rawTime;
+
+    time(&rawTime);
+    timeInfo = *localtime(&rawTime);
+
+    return &timeInfo;
+}
+#endif
+
 
 // Resize literally everything on quick view 
 // I wonder if there is a more efficient way to do this
@@ -131,8 +164,7 @@ static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
   graphics_fill_radial(ctx, bounds, GOvalScaleModeFitCircle, EDGE_THICKNESS, 0, TRIG_MAX_ANGLE);
 
   // Get time and sun position
-  time_t now = time(NULL);
-  struct tm *timeInfo = localtime(&now);
+  struct tm *timeInfo = getCurrentTime();
   int hour = timeInfo->tm_hour;
   int minute = timeInfo->tm_min;
 
@@ -158,7 +190,7 @@ static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
   graphics_fill_radial(ctx, bounds, GOvalScaleModeFitCircle, thickness, 0, dayEndAngle);
 
   // Draw the top right area
-  graphics_context_set_fill_color(ctx, GColorBlue);
+  graphics_context_set_fill_color(ctx, globalSettings.ringDayColor);
   graphics_fill_radial(ctx, bounds, GOvalScaleModeFitCircle, thickness, dayStartAngle, TRIG_MAX_ANGLE);
 
   // Draw the night area
@@ -224,8 +256,7 @@ static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
                      GCornerNone);
 
   // Get time and sun position
-  time_t now = time(NULL);
-  struct tm *timeInfo = localtime(&now);
+  struct tm *timeInfo = getCurrentTime();
   int hour = timeInfo->tm_hour;
   int minute = timeInfo->tm_min;
 
@@ -296,11 +327,7 @@ static void ring_layer_update_proc(Layer *layer, GContext *ctx) {
 #endif
 
 static void update_clock() {
-  time_t rawTime;
-  struct tm *timeInfo;
-
-  time(&rawTime);
-  timeInfo = localtime(&rawTime);
+  struct tm *timeInfo = getCurrentTime();
 
   // set time string
   if (clock_is_24h_style() && !FORCE_12H) {

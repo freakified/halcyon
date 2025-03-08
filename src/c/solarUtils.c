@@ -17,6 +17,16 @@ void solarUtils_updateLocation(LocationInfo loc) {
 }
 
 // Using the stored location OR the defaults, returns the sunrise and sunset
+#ifdef USE_FAKE_TIME
+SolarInfo solarUtils_recalculateSolarData() {
+    SolarInfo solarInfo = {
+      sunsetMinute : DEFAULT_SUNSET_TIME,
+      sunriseMinute : DEFAULT_SUNRISE_TIME
+    };
+
+    return solarInfo;
+}
+#else
 SolarInfo solarUtils_recalculateSolarData() {
   if (persist_exists(LOCATION_DATA_KEY)) {
     LocationInfo loc;
@@ -81,3 +91,4 @@ SolarInfo solarUtils_recalculateSolarData() {
     return solarInfo;
   }
 }
+#endif

@@ -26,7 +26,7 @@
   #define DEFAULT_SUBTEXT_SECONDARY_COLOR GColorBlack;
   #define DEFAULT_BG_COLOR                GColorWhite;
   #define DEFAULT_PIP_COLOR_PRIMARY       GColorBlack;
-  #define DEFAULT_PIP_COLOR_SECONDARY     GColorLightGray;
+  #define DEFAULT_PIP_COLOR_SECONDARY     GColorBlack;
   #define DEFAULT_RING_STROKE_COLOR       GColorBlack;
   #define DEFAULT_RING_NIGHT_COLOR        GColorBlack;
   #define DEFAULT_RING_DAY_COLOR          GColorWhite;
