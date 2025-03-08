@@ -36,7 +36,7 @@ static char dateText[DATE_STR_LEN];
 static SolarInfo currentSolarInfo;
 
 // Resize literally everything on quick view 
-// I wonder if there was some more efficient way to do this
+// I wonder if there is a more efficient way to do this
 static void quickViewLayerReposition() {
   GRect full_bounds = layer_get_bounds(windowLayer);
   GRect bounds = layer_get_unobstructed_bounds(windowLayer);
@@ -51,7 +51,7 @@ static void quickViewLayerReposition() {
   layer_set_frame(ringLayer, GRect(0, 0, shiftingFrame.size.w, shiftingFrame.size.h));
 
   int new_center_height = new_height - 2 * EDGE_THICKNESS;
-  if (new_center_height < 0) new_center_height = 0; // Prevent negative values
+  if (new_center_height < 0) new_center_height = 0;
   GRect centerFrame = GRect(
       EDGE_THICKNESS, EDGE_THICKNESS,
       shiftingFrame.size.w - 2 * EDGE_THICKNESS, new_center_height);
@@ -384,7 +384,6 @@ static void center_layer_update_proc(Layer *layer, GContext *ctx) {
 
   int innerPadding = 0;
 
-  // Corrections to fix symmetry, probably due to some kind of odd numbers
   bounds.origin.x += innerPadding;
   bounds.origin.y += innerPadding;
   bounds.size.w -= innerPadding * innerPadding + 1;
@@ -392,20 +391,18 @@ static void center_layer_update_proc(Layer *layer, GContext *ctx) {
 
   int numPips = 24;
   int pip_length = 2;
-  int long_pip_length = 3; // Longer for cardinal directions
+  int long_pip_length = 3;
 
   for (int i = 0; i < numPips; i++) {
     bool is_main_pip = ((i - (numPips / 8)) % (numPips / 4) == 0);
     int length = is_main_pip ? long_pip_length : pip_length;
 
-    // Set color based on pip type
     graphics_context_set_stroke_color(ctx, is_main_pip ? globalSettings.pipColorPrimary
                                                        : globalSettings.pipColorSecondary);
     graphics_context_set_stroke_width(ctx, 3);
 
     GPoint start = getPipPosition(i, numPips, bounds);
 
-    // Contract bounds inward for end position
     GRect contracted_bounds = bounds;
     contracted_bounds.origin.x += length;
     contracted_bounds.origin.y += length;
@@ -439,11 +436,11 @@ static void onUnobstructedAreaDidChange(void *context) {
 }
 
 static void main_window_load(Window *window) {
-  //  Get fonts
+  //  get fonts
   timeFont = fonts_get_system_font(PBL_IF_ROUND_ELSE(FONT_KEY_LECO_38_BOLD_NUMBERS, FONT_KEY_LECO_32_BOLD_NUMBERS));
   dateFont = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
 
-  // Get information about the Window
+  // get information about the Window
   windowLayer = window_get_root_layer(window);
   window_set_background_color(window, globalSettings.ringStrokeColor);
   GRect bounds = layer_get_bounds(windowLayer);
@@ -452,7 +449,7 @@ static void main_window_load(Window *window) {
   layer_add_child(windowLayer, shiftingLayer);
 
 
-  // Create central rectangle
+  // create central rectangle
   GRect centerFrame = GRect(
       bounds.origin.x + EDGE_THICKNESS, bounds.origin.y + EDGE_THICKNESS,
       bounds.size.w - EDGE_THICKNESS * 2, bounds.size.h - EDGE_THICKNESS * 2);
@@ -460,12 +457,12 @@ static void main_window_load(Window *window) {
   layer_set_update_proc(centerLayer, center_layer_update_proc);
   layer_add_child(shiftingLayer, centerLayer);
 
-  // Create ring layer
+  // create ring layer
   ringLayer = layer_create(bounds);
   layer_set_update_proc(ringLayer, ring_layer_update_proc);
   layer_add_child(shiftingLayer, ringLayer);
 
-  // Create time TextLayer
+  // create time TextLayer
   timeLayer =
       text_layer_create(GRect(0, TIME_LAYER_YPOS, bounds.size.w - EDGE_THICKNESS * 2, TEXT_LAYER_HEIGHT));
   ;
@@ -474,7 +471,7 @@ static void main_window_load(Window *window) {
   text_layer_set_text_alignment(timeLayer, GTextAlignmentCenter);
   layer_add_child(centerLayer, text_layer_get_layer(timeLayer));
 
-  // Create date TextLayer
+  // create date TextLayer
   dateLayer =
       text_layer_create(GRect(0, DATE_LAYER_YPOS, bounds.size.w - EDGE_THICKNESS * 2, TEXT_LAYER_HEIGHT));
   text_layer_set_background_color(dateLayer, GColorClear);
@@ -482,7 +479,7 @@ static void main_window_load(Window *window) {
   text_layer_set_text_alignment(dateLayer, GTextAlignmentCenter);
   layer_add_child(centerLayer, text_layer_get_layer(dateLayer));
 
-  // Subscribe to the unobstructed area events
+  // subscribe to the unobstructed area events
   UnobstructedAreaHandlers handlers = {
     .change = onUnobstructedAreaChange,
     .did_change = onUnobstructedAreaDidChange
@@ -492,12 +489,12 @@ static void main_window_load(Window *window) {
   // just in case quick view is open on load
   quickViewLayerReposition();
 
-  // Make sure the time is displayed from the start
+  // make sure the time is displayed from the start
   update_clock();  
 }
 
 static void main_window_unload(Window *window) {
-  // Destroy everything
+  // destroy everything
   text_layer_destroy(timeLayer);
   text_layer_destroy(dateLayer);
   layer_destroy(ringLayer);
@@ -506,8 +503,6 @@ static void main_window_unload(Window *window) {
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_clock();
-
-
 }
 
 // static void day_tick_handler(struct tm *tick_time, TimeUnits units_changed) {
