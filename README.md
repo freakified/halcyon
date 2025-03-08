@@ -5,7 +5,6 @@ An analog-digital watchface featuring the solar day, created for [Rebble Hackath
 
 ### From the darkness, light once again emerges
 
-
 Halcyon represents the 24 hours of the day as a ring around the edges of your watch, highlighting the sunrise, sunset, and the position of the sun itself!
 
 *Inspired by the PebbleOS 3.9-era sleep visualization! (does anyone remember that?)*
@@ -23,11 +22,8 @@ Halcyon represents the 24 hours of the day as a ring around the edges of your wa
 Download it on the Rebble Store:
 https://apps.rebble.io/en_US/application/67cb1c5fb7a02301b9a6e415
 
-
-
 Known issues:
  - Config page previews are always square even on round watches
- - The secondary text setting does not currently do anything
+ - The secondary text setting does not currently do anything because secondary text isn't implemented yet
  - The screenshots on the app store listing need some work
- - Need to upload source to Github
  - Needs more cool and exciting features
