@@ -1,7 +1,7 @@
 # Halcyon
 An analog-digital watchface featuring the solar day, created for [Rebble Hackathon 002](https://rebble.io/hackathon-002/).
 
-![Example screenshot](misc/example_screenshot_1.png)
+![Example screenshot](misc/example_gif.gif)
 
 ### From the darkness, light once again emerges
 
