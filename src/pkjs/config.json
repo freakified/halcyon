@@ -195,6 +195,20 @@
     ]
   },
   {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Appearance"
+      },
+      {
+        "type": "toggle",
+        "messageKey": "SETTING_USE_LARGE_FONTS",
+        "label": "Use large fonts"
+      }
+    ]
+  },
+  {
     "type": "submit",
     "defaultValue": "Save Settings"
   }

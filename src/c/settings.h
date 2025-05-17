@@ -62,6 +62,8 @@ typedef struct {
   GColor sunStrokeColor;
   GColor sunFillColor;
 
+  bool useLargeFonts;
+
   // // general settings
   // uint8_t languageId;
   // bool showLeadingZero;
@@ -124,6 +126,8 @@ typedef struct {
   GColor ringSunsetColor;
   GColor sunStrokeColor;
   GColor sunFillColor;
+
+  uint8_t useLargeFonts:1;
   
   // other appearance settings
   // uint8_t timeShowLeadingZero:1;

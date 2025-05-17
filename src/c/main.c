@@ -1,4 +1,3 @@
-
 #include <pebble.h>
 
 // #define USE_FAKE_TIME
@@ -9,81 +8,78 @@
 #include "solarUtils.h"
 #include "utils.h"
 #include "drawUtils.h"
+#include "text_metrics.h"
 
 #define FORCE_12H false
 #define TIME_STR_LEN 6
 #define DATE_STR_LEN 25
 
-// various layer metrics
-#define TIME_LAYER_YPOS PBL_IF_ROUND_ELSE(39, 34)
-#define DATE_LAYER_YPOS PBL_IF_ROUND_ELSE(79, 68)
-#define TEXT_LAYER_HEIGHT 60
-
-// per-platform fonts
-#ifdef PBL_PLATFORM_EMERY
-  // the Time 2
-  #define FONT_TIME_STANDARD FONT_KEY_LECO_42_NUMBERS
-  #define FONT_DATE_STANDARD FONT_KEY_GOTHIC_24_BOLD
-  #define FONT_TIME_LARGE    FONT_KEY_ROBOTO_BOLD_SUBSET_49
-  #define FONT_DATE_LARGE    FONT_KEY_GOTHIC_28_BOLD
-#elif defined(PBL_ROUND)
-  // time round
-  #define FONT_TIME_STANDARD FONT_KEY_LECO_38_BOLD_NUMBERS
-  #define FONT_DATE_STANDARD FONT_KEY_GOTHIC_18_BOLD
-  #define FONT_TIME_LARGE    FONT_KEY_LECO_42_NUMBERS
-  #define FONT_DATE_LARGE    FONT_KEY_GOTHIC_24_BOLD
-#else
-  // regular pebbles
-  #define FONT_TIME_STANDARD FONT_KEY_LECO_32_BOLD_NUMBERS
-  #define FONT_DATE_STANDARD FONT_KEY_GOTHIC_18_BOLD
-  #define FONT_TIME_LARGE    FONT_KEY_LECO_36_BOLD_NUMBERS
-  #define FONT_DATE_LARGE    FONT_KEY_GOTHIC_24_BOLD
-#endif
-
 // windows and layers
 static Window *mainWindow;
-static TextLayer *timeLayer;
-static TextLayer *dateLayer;
 static Layer *windowLayer;
 static Layer *shiftingLayer;
 static Layer *centerLayer;
 static Layer *ringLayer;
-
-// fonts
-static GFont timeFont;
-static GFont dateFont;
+static Layer *infoLayer;
 
 // long-lived strings
 static char timeText[TIME_STR_LEN];
 static char dateText[DATE_STR_LEN];
 
+static void draw_center_text(Layer *layer, GContext *ctx) {
+  GRect bounds = layer_get_bounds(layer);
+  bool useLargeFontSetting = globalSettings.useLargeFonts;
+  
+  GFont time_font = fonts_get_system_font(useLargeFontSetting ? FONT_TIME_LARGE : FONT_TIME_STANDARD);
+  GFont date_font = fonts_get_system_font(useLargeFontSetting ? FONT_DATE_LARGE : FONT_DATE_STANDARD);
+
+  int time_height = useLargeFontSetting ? FONT_TIME_LARGE_HEIGHT : FONT_TIME_STANDARD_HEIGHT;
+  int time_offset = useLargeFontSetting ? FONT_TIME_LARGE_OFFSET : FONT_TIME_STANDARD_OFFSET;
+
+  int date_height = useLargeFontSetting ? FONT_DATE_LARGE_HEIGHT : FONT_DATE_STANDARD_HEIGHT;
+  int date_offset = useLargeFontSetting ? FONT_DATE_LARGE_OFFSET : FONT_DATE_STANDARD_OFFSET;
+
+  int total_height = time_height + LINE_PADDING + date_height;
+  int start_y = (bounds.size.h - total_height) / 2;
+
+  // Turn these on to debug graphics layout
+  //  graphics_context_set_fill_color(ctx, GColorRed);
+  // graphics_fill_rect(ctx, GRect(0, start_y, bounds.size.w, time_height), 0, GCornerNone);
+  //    graphics_context_set_fill_color(ctx, GColorGreen);
+  // graphics_fill_rect(ctx, GRect(0, start_y + time_height + LINE_PADDING, bounds.size.w, date_height), 0, GCornerNone);
+
+
+  graphics_context_set_text_color(ctx, globalSettings.timeColor);
+  graphics_draw_text(ctx, timeText, time_font,
+                     GRect(0, start_y - time_offset, bounds.size.w, time_height),
+                     GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
+
+
+  graphics_context_set_text_color(ctx, globalSettings.subtextPrimaryColor);
+  graphics_draw_text(ctx, dateText, date_font,
+                     GRect(0, start_y + time_height + LINE_PADDING - date_offset, bounds.size.w, date_height),
+                     GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
+}
+
 // Resize literally everything on quick view 
-// I wonder if there is a more efficient way to do this
 static void quickViewLayerReposition() {
   GRect full_bounds = layer_get_bounds(windowLayer);
   GRect bounds = layer_get_unobstructed_bounds(windowLayer);
 
-  int new_height = bounds.size.h;
-  int diff = full_bounds.size.h - bounds.size.h;
-  int shift_up = diff / 2;
+  // Resize the shifting and center layer based on the current unobstructed bounds
+  layer_set_frame(shiftingLayer, GRect(0, 0, full_bounds.size.w, bounds.size.h));
+  layer_set_frame(ringLayer, GRect(0, 0, full_bounds.size.w, bounds.size.h));
 
-  GRect shiftingFrame = GRect(0, 0, full_bounds.size.w, new_height);
-  layer_set_frame(shiftingLayer, shiftingFrame);
-
-  layer_set_frame(ringLayer, GRect(0, 0, shiftingFrame.size.w, shiftingFrame.size.h));
-
-  int new_center_height = new_height - 2 * EDGE_THICKNESS;
-  if (new_center_height < 0) new_center_height = 0;
   GRect centerFrame = GRect(
-      EDGE_THICKNESS, EDGE_THICKNESS,
-      shiftingFrame.size.w - 2 * EDGE_THICKNESS, new_center_height);
+    EDGE_THICKNESS, EDGE_THICKNESS,
+    full_bounds.size.w - 2 * EDGE_THICKNESS,
+    bounds.size.h - 2 * EDGE_THICKNESS);
   layer_set_frame(centerLayer, centerFrame);
 
-  layer_set_frame(text_layer_get_layer(timeLayer),
-      GRect(0, TIME_LAYER_YPOS - shift_up, full_bounds.size.w - EDGE_THICKNESS * 2, TEXT_LAYER_HEIGHT));
-  layer_set_frame(text_layer_get_layer(dateLayer),
-      GRect(0, DATE_LAYER_YPOS - shift_up, full_bounds.size.w - EDGE_THICKNESS * 2, TEXT_LAYER_HEIGHT));
+  // Resize the infoLayer to match the new centerLayer
+  layer_set_frame(infoLayer, GRect(0, 0, centerFrame.size.w, centerFrame.size.h));
 
+  // Mark everything as dirty to redraw
   layer_mark_dirty(ringLayer);
   layer_mark_dirty(centerLayer);
 }
@@ -110,16 +106,10 @@ static void update_clock() {
 
   // ensure colors are updated based on settings
   window_set_background_color(mainWindow, globalSettings.ringStrokeColor);
-  text_layer_set_text_color(timeLayer, globalSettings.timeColor);
-  text_layer_set_text_color(dateLayer, globalSettings.subtextPrimaryColor);
-
-  // display this time on the TextLayer
-  text_layer_set_text(timeLayer, timeText);
 
   // display the date
   strftime(dateText, DATE_STR_LEN, "%a, %b %e", timeInfo);
   to_uppercase(dateText);
-  text_layer_set_text(dateLayer, dateText);
   
   // if sunrise/sunset has not yet been calculated, do that
   if(currentSolarInfo.sunriseMinute == 0 && currentSolarInfo.sunriseMinute == 0) {
@@ -128,6 +118,7 @@ static void update_clock() {
 
   // redraw solar ring layer
   layer_mark_dirty(ringLayer);
+  layer_mark_dirty(centerLayer);
 }
 
 // settings might have changed, so recalculate solar data and refresh screen
@@ -150,12 +141,6 @@ static void onUnobstructedAreaDidChange(void *context) {
 }
 
 static void main_window_load(Window *window) {
-  bool useLargeFontSetting = false; // this will eventually be a user preference
-
-  // use the platform-appropriate fonts we defined earlier
-  timeFont = fonts_get_system_font(useLargeFontSetting ? FONT_TIME_LARGE : FONT_TIME_STANDARD);
-  dateFont = fonts_get_system_font(useLargeFontSetting ? FONT_DATE_LARGE : FONT_DATE_STANDARD);
-
   // get information about the Window
   windowLayer = window_get_root_layer(window);
   window_set_background_color(window, globalSettings.ringStrokeColor);
@@ -164,36 +149,23 @@ static void main_window_load(Window *window) {
   shiftingLayer = layer_create(bounds);
   layer_add_child(windowLayer, shiftingLayer);
 
-
   // create central rectangle
   GRect centerFrame = GRect(
       bounds.origin.x + EDGE_THICKNESS, bounds.origin.y + EDGE_THICKNESS,
       bounds.size.w - EDGE_THICKNESS * 2, bounds.size.h - EDGE_THICKNESS * 2);
   centerLayer = layer_create(centerFrame);
   layer_set_update_proc(centerLayer, draw_center_layer);
+
   layer_add_child(shiftingLayer, centerLayer);
+
+  infoLayer = layer_create(layer_get_bounds(centerLayer));
+  layer_set_update_proc(infoLayer, draw_center_text);
+  layer_add_child(centerLayer, infoLayer);
 
   // create ring layer
   ringLayer = layer_create(bounds);
   layer_set_update_proc(ringLayer, draw_ring_layer);
   layer_add_child(shiftingLayer, ringLayer);
-
-  // create time TextLayer
-  timeLayer =
-      text_layer_create(GRect(0, TIME_LAYER_YPOS, bounds.size.w - EDGE_THICKNESS * 2, TEXT_LAYER_HEIGHT));
-  ;
-  text_layer_set_background_color(timeLayer, GColorClear);
-  text_layer_set_font(timeLayer, timeFont);
-  text_layer_set_text_alignment(timeLayer, GTextAlignmentCenter);
-  layer_add_child(centerLayer, text_layer_get_layer(timeLayer));
-
-  // create date TextLayer
-  dateLayer =
-      text_layer_create(GRect(0, DATE_LAYER_YPOS, bounds.size.w - EDGE_THICKNESS * 2, TEXT_LAYER_HEIGHT));
-  text_layer_set_background_color(dateLayer, GColorClear);
-  text_layer_set_font(dateLayer, dateFont);
-  text_layer_set_text_alignment(dateLayer, GTextAlignmentCenter);
-  layer_add_child(centerLayer, text_layer_get_layer(dateLayer));
 
   // subscribe to the unobstructed area events
   UnobstructedAreaHandlers handlers = {
@@ -206,14 +178,13 @@ static void main_window_load(Window *window) {
   quickViewLayerReposition();
 
   // make sure the time is displayed from the start
-  update_clock();  
+  update_clock();
 }
 
 static void main_window_unload(Window *window) {
   // destroy everything
-  text_layer_destroy(timeLayer);
-  text_layer_destroy(dateLayer);
   layer_destroy(ringLayer);
+  layer_destroy(infoLayer);
   layer_destroy(centerLayer);
 }
 

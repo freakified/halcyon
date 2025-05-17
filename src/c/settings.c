@@ -30,6 +30,9 @@ void Settings_loadFromStorage() {
   globalSettings.sunStrokeColor = DEFAULT_SUN_STROKE_COLOR;
   globalSettings.sunFillColor = DEFAULT_SUN_FILL_COLOR;
 
+  // metrics
+  globalSettings.useLargeFonts = false;
+
   // globalSettings.widgets[0] = PBL_IF_HEALTH_ELSE(HEALTH, BATTERY_METER);
   // globalSettings.widgets[1] = EMPTY;
   // globalSettings.widgets[2] = DATE;
