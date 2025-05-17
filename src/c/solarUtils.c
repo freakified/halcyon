@@ -2,6 +2,8 @@
 #include "solarUtils.h"
 #include "sun_calc.h"
 
+SolarInfo currentSolarInfo;
+
 void solarUtils_updateLocation(LocationInfo loc) {
   // APP_LOG(APP_LOG_LEVEL_DEBUG,
   //         "Got a location! %d, Lng: %d, TZ: %d ",
@@ -18,7 +20,7 @@ void solarUtils_updateLocation(LocationInfo loc) {
 
 // Using the stored location OR the defaults, returns the sunrise and sunset
 #ifdef USE_FAKE_TIME
-SolarInfo solarUtils_recalculateSolarData() {
+SolarInfo priv_recalculateSolarData() {
     SolarInfo solarInfo = {
       sunsetMinute : DEFAULT_SUNSET_TIME,
       sunriseMinute : DEFAULT_SUNRISE_TIME
@@ -27,7 +29,7 @@ SolarInfo solarUtils_recalculateSolarData() {
     return solarInfo;
 }
 #else
-SolarInfo solarUtils_recalculateSolarData() {
+SolarInfo priv_recalculateSolarData() {
   if (persist_exists(LOCATION_DATA_KEY)) {
     LocationInfo loc;
     persist_read_data(LOCATION_DATA_KEY, &loc, sizeof(LocationInfo));
@@ -92,3 +94,7 @@ SolarInfo solarUtils_recalculateSolarData() {
   }
 }
 #endif
+
+void solarUtils_recalculateSolarData () {
+  currentSolarInfo = priv_recalculateSolarData();
+}

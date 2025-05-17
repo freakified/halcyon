@@ -35,6 +35,8 @@ typedef struct {
 void solarUtils_updateLocation(LocationInfo loc);
 
 /*
- * Recalculates sunrise/sunset times, returning them as a SolarInfo struct
+ * Recalculates sunrise/sunset times, updating the currentSolarInfo
  */
-SolarInfo solarUtils_recalculateSolarData();
+void solarUtils_recalculateSolarData();
+
+extern SolarInfo currentSolarInfo;
