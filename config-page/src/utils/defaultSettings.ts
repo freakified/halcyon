@@ -1,5 +1,18 @@
 import { Settings, Capabilities } from '../context/types';
 
+// Locales whose users expect Fahrenheit/MPH/inches by default.
+// Kept narrow (US only) since it flips the whole imperial/metric bundle.
+const IMPERIAL_LOCALE_REGEX = /^(en|es)-US\b/i;
+
+const detectImperialLocale = (): boolean => {
+  try {
+    const locale = navigator.language || (navigator.languages && navigator.languages[0]);
+    return !!locale && IMPERIAL_LOCALE_REGEX.test(locale);
+  } catch {
+    return false;
+  }
+};
+
 export const getDefaultSettings = (capabilities: Capabilities): Settings => ({
   SETTING_THEME: '0',
   SETTING_NIGHT_THEME: '0',
@@ -39,7 +52,7 @@ export const getDefaultSettings = (capabilities: Capabilities): Settings => ({
   SETTING_WIDGET_UPPER_PRIMARY: '{cond}',
   SETTING_WIDGET_LOWER_PRIMARY: '{local_date}',
   SETTING_WIDGET_LOWER_SECONDARY: capabilities.HEALTH ? '{steps} {t:STEPS}' : '{t:BATTERY} {batt}%',
-  SETTING_TEMP_UNIT: 0,
+  SETTING_TEMP_UNIT: detectImperialLocale() ? 1 : 0,
   SETTING_LANGUAGE: 0,
   SETTING_ALT_CITY: 'SAN FRANCISCO',
   SETTING_ALT_LABEL: 'SFO',
