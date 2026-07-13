@@ -35,6 +35,21 @@ function saveIs24h(is24h) {
 // then refreshed from WATCH_IS_24H on each watch-initiated heartbeat.
 var cachedIs24h = restoreIs24h();
 
+// Fallback default when the user has never opened the config page.
+// Kept narrow (US only) since it flips the whole imperial/metric bundle
+// (temperature, wind speed, rain).
+var IMPERIAL_LOCALE_REGEX = /^(en|es)-US\b/i;
+
+function detectImperialLocale() {
+  try {
+    var locale = navigator.language ||
+      (navigator.languages && navigator.languages[0]);
+    return !!locale && IMPERIAL_LOCALE_REGEX.test(locale);
+  } catch (e) {
+    return false;
+  }
+}
+
 // Default widget format strings — used when no settings have been configured yet
 // so that JS can perform token substitution even on first run. The lower-primary
 // uses the {local_date} super-token, which the watch expands per-language at
@@ -223,7 +238,11 @@ function sendDataToWatch() {
     settings = {};
   }
 
-  var isImperial = (settings.SETTING_TEMP_UNIT === 1);
+  // Before the user has opened the config page, SETTING_TEMP_UNIT is undefined.
+  // Fall back to the phone's locale so US users don't see Celsius by default.
+  var isImperial = (settings.SETTING_TEMP_UNIT === undefined)
+    ? detectImperialLocale()
+    : (settings.SETTING_TEMP_UNIT === 1);
   var lang = settings.SETTING_LANGUAGE || 0;
   var use24h = cachedIs24h;
   var weather = Weather.isDisplayable(cachedWeather) ? cachedWeather : null;
