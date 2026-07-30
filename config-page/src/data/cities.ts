@@ -12,6 +12,7 @@ export const CITIES: City[] = [
   { name: "ANCHORAGE", displayName: "Anchorage", abbreviation: "ANC", timezone: "America/Anchorage", offset: -540 },
   { name: "VANCOUVER", displayName: "Vancouver", abbreviation: "YVR", timezone: "America/Vancouver", offset: -480 },
   { name: "SAN FRANCISCO", displayName: "San Francisco", abbreviation: "SFO", timezone: "America/Los_Angeles", offset: -480 },
+  { name: "PHOENIX", displayName: "Phoenix", abbreviation: "PHX", timezone: "America/Phoenix", offset: -480 },
   { name: "EDMONTON", displayName: "Edmonton", abbreviation: "YEG", timezone: "America/Edmonton", offset: -420 },
   { name: "DENVER", displayName: "Denver", abbreviation: "DEN", timezone: "America/Denver", offset: -420 },
   { name: "MEXICO CITY", displayName: "Mexico City", abbreviation: "MEX", timezone: "America/Mexico_City", offset: -360 },
