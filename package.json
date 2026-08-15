@@ -11,8 +11,8 @@
     "test:weather-icons": "node scripts/test-weather-icons.js"
   },
   "pebble": {
-    "displayName": "Halcyon",
-    "uuid": "c8e97ab8-7c12-45fb-975d-e85d5de61e8b",
+    "displayName": "Halcyon WX",
+    "uuid": "487e9927-f3d3-4236-b24a-7b436c751258",
     "sdkVersion": "3",
     "enableMultiJS": true,
     "targetPlatforms": [
