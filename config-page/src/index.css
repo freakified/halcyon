@@ -638,6 +638,13 @@ input[type='checkbox'] {
   font-size: 14px;
 }
 
+.halite-weather-icon-preview {
+  display: block;
+  width: 25px;
+  height: 25px;
+  margin: 0 auto;
+}
+
 .halite-watch-time {
   margin: 6px 0;
   display: flex;
