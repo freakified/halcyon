@@ -3,6 +3,48 @@
 
 var Languages = require('./languages');
 
+// Stable values sent to the watch. Keep these in sync with WeatherIcon in
+// src/c/weather_icon.h; the watch intentionally does not interpret WMO codes.
+var WeatherIcon = {
+  UNKNOWN: 0,
+  CLEAR: 1,
+  MOSTLY_CLEAR: 2,
+  PARTLY_CLOUDY: 3,
+  CLOUDY: 4,
+  FOG: 5,
+  DRIZZLE: 6,
+  RAIN: 7,
+  SNOW: 8,
+  THUNDERSTORM: 9
+};
+
+function getWeatherIcon(code) {
+  if (code === 0) return WeatherIcon.CLEAR;
+  if (code === 1) return WeatherIcon.MOSTLY_CLEAR;
+  if (code === 2) return WeatherIcon.PARTLY_CLOUDY;
+  if (code === 3) return WeatherIcon.CLOUDY;
+
+  if (code === 45 || code === 48) return WeatherIcon.FOG;
+
+  if ([51, 53, 55, 56, 57].indexOf(code) >= 0) {
+    return WeatherIcon.DRIZZLE;
+  }
+
+  if ([61, 63, 65, 66, 67, 80, 81, 82].indexOf(code) >= 0) {
+    return WeatherIcon.RAIN;
+  }
+
+  if ([71, 73, 75, 77, 85, 86].indexOf(code) >= 0) {
+    return WeatherIcon.SNOW;
+  }
+
+  if ([95, 96, 99].indexOf(code) >= 0) {
+    return WeatherIcon.THUNDERSTORM;
+  }
+
+  return WeatherIcon.UNKNOWN;
+}
+
 function getCondition(code, lang) {
   var L = Languages.getLang(lang);
   return L.weather[code] || Languages.getLang(0).weather[code] || 'WX' + code;
@@ -132,5 +174,7 @@ module.exports = {
   toMPH: toMPH,
   toInch: toInch,
   getCardinal: getCardinal,
-  getCondition: getCondition
+  getCondition: getCondition,
+  getWeatherIcon: getWeatherIcon,
+  WeatherIcon: WeatherIcon
 };

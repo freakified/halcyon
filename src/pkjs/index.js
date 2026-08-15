@@ -54,7 +54,8 @@ var WIDGET_SLOT_KEYS = [
 ];
 
 var WEATHER_WIDGET_TOKENS = [
-  '{temp}', '{thi}', '{tlo}', '{cond}', '{cond_day}', '{hum}',
+  '{temp}', '{thi}', '{tlo}', '{cond}', '{cond_day}', '{weather_icon}',
+  '{weather_icon_day}', '{hum}',
   '{wind}', '{uv}', '{rain}', '{pop}', '{dew}', '{temp_unit}',
   '{wind_unit}', '{wind_dir}'
 ];
@@ -259,6 +260,15 @@ function sendDataToWatch() {
     msg['WEATHER_SUNRISE_MINUTE'] = cachedSolar.sunriseMinute;
     msg['WEATHER_SUNSET_MINUTE'] = cachedSolar.sunsetMinute;
   }
+
+  // The watch renders icon tokens as bitmap-only slots. Send semantic values
+  // separately so the C renderer stays independent of Open-Meteo WMO codes.
+  msg['WEATHER_ICON_CURRENT'] = weather
+    ? Weather.getWeatherIcon(weather.code)
+    : Weather.WeatherIcon.UNKNOWN;
+  msg['WEATHER_ICON_DAY'] = weather
+    ? Weather.getWeatherIcon(weather.codeDay)
+    : Weather.WeatherIcon.UNKNOWN;
 
   // Send temp unit setting
   msg['SETTING_TEMP_UNIT'] = isImperial ? 1 : 0;

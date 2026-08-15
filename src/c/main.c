@@ -8,6 +8,7 @@
 #include "solarUtils.h"
 #include "text_metrics.h"
 #include "utils.h"
+#include "weather_icon.h"
 #include "widgets.h"
 
 #define FORCE_12H false
@@ -36,13 +37,30 @@ static AppTimer *s_update_request_timer = NULL;
 // ============================================================
 // Slot descriptor — one per visible row in the layout
 // ============================================================
+typedef enum {
+  SLOT_CONTENT_TEXT,
+  SLOT_CONTENT_WEATHER_ICON_CURRENT,
+  SLOT_CONTENT_WEATHER_ICON_DAY
+} SlotContentType;
+
 typedef struct {
+  SlotContentType type;
   const char *text;
   GFont font;
   int height; // true pixel height from metrics
   int offset; // top dead-space offset from metrics
   GColor color;
 } SlotDescriptor;
+
+static SlotContentType get_slot_content_type(const char *text) {
+  if (strcmp(text, WEATHER_ICON_TOKEN) == 0) {
+    return SLOT_CONTENT_WEATHER_ICON_CURRENT;
+  }
+  if (strcmp(text, WEATHER_ICON_DAY_TOKEN) == 0) {
+    return SLOT_CONTENT_WEATHER_ICON_DAY;
+  }
+  return SLOT_CONTENT_TEXT;
+}
 
 // Buffer storage for each of the 4 widget slots. Populated by
 // update_widget_text() on the minute tick / settings change, then read by
@@ -117,6 +135,8 @@ static void draw_center_text(Layer *layer, GContext *ctx) {
   GColor secondaryColor = useNightColors
                               ? globalSettings.nightSubtextSecondaryColor
                               : globalSettings.subtextSecondaryColor;
+  GColor backgroundColor =
+      useNightColors ? globalSettings.nightBgColor : globalSettings.bgColor;
 
   // ---- Build ordered slot list (top to bottom) ----
   // We use a fixed-size array and fill only active (non-empty) slots.
@@ -127,10 +147,15 @@ static void draw_center_text(Layer *layer, GContext *ctx) {
 // Helper macro to push a slot
 #define PUSH_SLOT(txt, fnt, h, off, col)                                       \
   do {                                                                         \
+    slots[num_slots].type = get_slot_content_type(txt);                        \
     slots[num_slots].text = (txt);                                             \
     slots[num_slots].font = (fnt);                                             \
-    slots[num_slots].height = (h);                                             \
-    slots[num_slots].offset = (off);                                           \
+    slots[num_slots].height = slots[num_slots].type == SLOT_CONTENT_TEXT        \
+                                  ? (h)                                        \
+                                  : WEATHER_ICON_SIZE;                         \
+    slots[num_slots].offset = slots[num_slots].type == SLOT_CONTENT_TEXT        \
+                                  ? (off)                                      \
+                                  : 0;                                         \
     slots[num_slots].color = (col);                                            \
     num_slots++;                                                               \
   } while (0)
@@ -192,11 +217,17 @@ static void draw_center_text(Layer *layer, GContext *ctx) {
   // ---- Draw each slot ----
   for (int i = 0; i < num_slots; i++) {
     SlotDescriptor *s = &slots[i];
-    graphics_context_set_text_color(ctx, s->color);
-    graphics_draw_text(ctx, s->text, s->font,
-                       GRect(0, y - s->offset, bounds.size.w, s->height),
-                       GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter,
-                       NULL);
+    if (s->type == SLOT_CONTENT_TEXT) {
+      graphics_context_set_text_color(ctx, s->color);
+      graphics_draw_text(ctx, s->text, s->font,
+                         GRect(0, y - s->offset, bounds.size.w, s->height),
+                         GTextOverflowModeTrailingEllipsis,
+                         GTextAlignmentCenter, NULL);
+    } else {
+      weather_icon_draw(ctx, s->type == SLOT_CONTENT_WEATHER_ICON_DAY,
+                        GRect(0, y, bounds.size.w, s->height), s->color,
+                        backgroundColor);
+    }
     y += s->height + LINE_PADDING;
   }
 }
@@ -330,6 +361,7 @@ static void main_window_load(Window *window) {
 
 static void main_window_unload(Window *window) {
   // destroy everything
+  weather_icon_deinit();
   layer_destroy(ringLayer);
   layer_destroy(infoLayer);
   layer_destroy(centerLayer);

@@ -14,6 +14,13 @@ Halcyon represents the 24 hours of the day as a ring around the edges of your wa
 - Custom widgets! Add a monogram or even create your own hybrid widgets featuring any available data!
 - Works in your language (experimental)! Widgets are fully localized to 38 different languages! (Note: currently experimental; if you find an error in your language, please contact me!)
 
+### Weather condition widgets
+
+The existing `{cond}` and `{cond_day}` tokens display localized condition text.
+Use `{weather_icon}` or `{weather_icon_day}` as the complete contents of a
+widget slot to display the corresponding graphical condition instead. Inline
+icon-and-text combinations are not supported yet.
+
 ### Install it on your watch: 
 
 - **Download it on the Pebble Store:**
