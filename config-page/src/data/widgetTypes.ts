@@ -79,6 +79,7 @@ export const WIDGET_TOKENS: WidgetToken[] = [
   { token: '{day}', label: 'Day', category: 'Date & Time' },
   { token: '{month_num}', label: 'Month No.', category: 'Date & Time' },
   { token: '{year}', label: 'Year', category: 'Date & Time' },
+  { token: '{abbreviated_year}', label: 'Abbreviated Year', category: 'Date & Time' },
   { token: '{day_of_year}', label: 'Day No.', category: 'Date & Time' },
   { token: '{week_of_year}', label: 'Week No.', category: 'Date & Time' },
   { token: '{sunrise}', label: 'Sunrise', category: 'Solar' },
