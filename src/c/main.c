@@ -207,6 +207,13 @@ static void quickViewLayerReposition() {
   GRect bounds = layer_get_unobstructed_bounds(windowLayer);
   s_quick_view_visible = bounds.size.h < full_bounds.size.h;
 
+#if defined(PBL_ROUND)
+  // On round watches, leave everything where it is and let quick view cover
+  // the bottom of the face
+  s_quick_view_visible = false;
+  return;
+#endif
+
   // Resize the shifting and center layer based on the current unobstructed
   // bounds
   layer_set_frame(shiftingLayer,
