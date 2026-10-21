@@ -45,4 +45,8 @@ export const getDefaultSettings = (capabilities: Capabilities): Settings => ({
   SETTING_ALT_LABEL: 'SFO',
   SETTING_ALT_CITY2: 'UTC',
   SETTING_ALT_LABEL2: 'UTC',
+  SETTING_USE_GPS_LOCATION: 1,
+  SETTING_MANUAL_LOCATION_NAME: '',
+  SETTING_MANUAL_LAT: 0,
+  SETTING_MANUAL_LNG: 0,
 });

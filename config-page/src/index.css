@@ -1169,3 +1169,59 @@ input[type='checkbox'] {
     width: 100%;
   }
 }
+
+
+.halite-location-search {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.halite-location-search-row {
+  display: flex;
+  gap: 8px;
+}
+
+.halite-location-search-row .halite-input {
+  flex: 1;
+  min-width: 0;
+}
+
+
+.halite-location-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.halite-location-results li + li {
+  border-top: 1px solid var(--border-color);
+}
+
+.halite-location-results button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background-color: var(--bg-surface-elevated);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.halite-location-results button:active {
+  background-color: var(--bg-surface-hover);
+}
+
+.halite-icon-btn {
+  padding: 8px;
+}

@@ -1,6 +1,6 @@
 var USE_LOCAL_CONFIG = false;
 var configDataUri = 'https://halcyon.freakified.net/';
-var configLocalUri = 'http://10.25.219.23:3000/index.html';
+var configLocalUri = 'http://192.168.11.9:3000/index.html';
 
 var SunCalc = require('./suncalc');
 var Weather = require('./weather');
@@ -16,6 +16,14 @@ var TIME_FORMAT_STORAGE_KEY = 'halcyonIs24h';
 var DEFAULT_ALT_CITY = 'TOKYO';
 var DEFAULT_ALT_CITY2 = 'UTC';
 var ALT_LABEL_MAX_LENGTH = 6;
+
+// Settings only used by the phone; never sent to the watch.
+var PHONE_ONLY_SETTING_KEYS = [
+  'SETTING_ALT_CITY', 'SETTING_ALT_LABEL',
+  'SETTING_ALT_CITY2', 'SETTING_ALT_LABEL2',
+  'SETTING_USE_GPS_LOCATION', 'SETTING_MANUAL_LOCATION_NAME',
+  'SETTING_MANUAL_LAT', 'SETTING_MANUAL_LNG'
+];
 
 function restoreIs24h() {
   try {
@@ -351,7 +359,29 @@ function locationSuccess(pos) {
   // which can be killed when the phone suspends the PKJS runtime.
 }
 
+// Returns { lat, lng } when the user has chosen a manual location, else null.
+function getManualLocation(settings) {
+  if (!settings || settings.SETTING_USE_GPS_LOCATION !== 0 ||
+    !settings.SETTING_MANUAL_LOCATION_NAME) return null;
+  var lat = settings.SETTING_MANUAL_LAT;
+  var lng = settings.SETTING_MANUAL_LNG;
+  if (typeof lat !== 'number' || typeof lng !== 'number') return null;
+  return { lat: lat, lng: lng };
+}
+
+function getLocationKey(settings) {
+  var manual = getManualLocation(settings);
+  return manual ? manual.lat + ',' + manual.lng : 'gps';
+}
+
 function getLocation() {
+  var manual = getManualLocation(cachedSettings);
+  if (manual) {
+    console.log('Using manual location: ' + manual.lat + ',' + manual.lng);
+    locationSuccess({ coords: { latitude: manual.lat, longitude: manual.lng } });
+    return;
+  }
+
   navigator.geolocation.getCurrentPosition(
     locationSuccess,
     locationError,
@@ -460,6 +490,8 @@ Pebble.addEventListener('webviewclosed', function (e) {
     delete configData.return_to;
   }
 
+  var locationChanged = getLocationKey(cachedSettings) !== getLocationKey(configData);
+
   // Save to localStorage for persistence
   localStorage.setItem('halcyonSettings', JSON.stringify(configData));
   cachedSettings = configData;
@@ -501,8 +533,7 @@ Pebble.addEventListener('webviewclosed', function (e) {
   // Process non-color, non-widget settings
   Object.keys(configData).forEach(function (key) {
     if (colorKeys.indexOf(key) === -1 && widgetKeys.indexOf(key) === -1 &&
-      key !== 'SETTING_ALT_CITY' && key !== 'SETTING_ALT_LABEL' &&
-      key !== 'SETTING_ALT_CITY2' && key !== 'SETTING_ALT_LABEL2') {
+      PHONE_ONLY_SETTING_KEYS.indexOf(key) === -1) {
       var value = configData[key];
       if (typeof value === 'boolean') {
         dict[key] = value ? 1 : 0;
@@ -523,4 +554,13 @@ Pebble.addEventListener('webviewclosed', function (e) {
 
   // Now apply Pass 1 to widget strings and send them with current weather/solar data
   sendDataToWatch();
+
+  // Weather from the old location is no longer valid; refetch for the new one.
+  if (locationChanged) {
+    console.log('Location setting changed; refetching');
+    cachedWeather = null;
+    Weather.clear();
+    resetBackoff();
+    getLocation();
+  }
 });

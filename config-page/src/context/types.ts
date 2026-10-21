@@ -75,4 +75,8 @@ export interface Settings {
   SETTING_ALT_LABEL: string;
   SETTING_ALT_CITY2: string;
   SETTING_ALT_LABEL2: string;
+  SETTING_USE_GPS_LOCATION: number;
+  SETTING_MANUAL_LOCATION_NAME: string;
+  SETTING_MANUAL_LAT: number;
+  SETTING_MANUAL_LNG: number;
 }

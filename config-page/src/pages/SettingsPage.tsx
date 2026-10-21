@@ -11,6 +11,7 @@ import {
   WidgetSelector,
   DonationLink,
   AltTimezoneSection,
+  LocationSection,
 } from '../components';
 import { useSavedThemes } from '../hooks/useSavedThemes';
 import lightThemes from '../data/light-themes.json';
@@ -233,6 +234,8 @@ export const SettingsPage: React.FC = () => {
           labelKey="SETTING_ALT_LABEL2"
         />
       )}
+
+      <LocationSection />
 
       {weatherWidgetSelected && (
         <Section title="Weather">
