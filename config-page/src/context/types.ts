@@ -71,10 +71,13 @@ export interface Settings {
   SETTING_WIDGET_LOWER_SECONDARY: string;
   SETTING_TEMP_UNIT: number;
   SETTING_LANGUAGE: number;
-  SETTING_ALT_CITY: string;
+  SETTING_ALT_ZONE: string;
   SETTING_ALT_LABEL: string;
-  SETTING_ALT_CITY2: string;
+  SETTING_ALT_ZONE2: string;
   SETTING_ALT_LABEL2: string;
+  // pre-zone city names, kept for apps that haven't updated (see legacyCities.ts)
+  SETTING_ALT_CITY?: string;
+  SETTING_ALT_CITY2?: string;
   SETTING_USE_GPS_LOCATION: number;
   SETTING_MANUAL_LOCATION_NAME: string;
   SETTING_MANUAL_LAT: number;

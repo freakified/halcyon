@@ -222,6 +222,7 @@ export const SettingsPage: React.FC = () => {
       {altWidgetSelected && (
         <AltTimezoneSection
           title="Alternate Time Zone 1"
+          zoneKey="SETTING_ALT_ZONE"
           cityKey="SETTING_ALT_CITY"
           labelKey="SETTING_ALT_LABEL"
         />
@@ -230,6 +231,7 @@ export const SettingsPage: React.FC = () => {
       {alt2WidgetSelected && (
         <AltTimezoneSection
           title="Alternate Time Zone 2"
+          zoneKey="SETTING_ALT_ZONE2"
           cityKey="SETTING_ALT_CITY2"
           labelKey="SETTING_ALT_LABEL2"
         />
