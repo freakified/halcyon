@@ -84,7 +84,9 @@
       "LOCAL_UTC_OFFSET",
       "REQUEST_UPDATE",
       "WATCH_IS_24H",
-      "SETTING_USE_PRIMARY_WIDGET_FONT"
+      "SETTING_USE_PRIMARY_WIDGET_FONT",
+      "SETTING_STATUS_BAR_ENABLED",
+      "SETTING_STATUS_SHOW_CONNECTION"
     ],
     "resources": {
       "media": [
@@ -92,6 +94,21 @@
           "file": "images/menuicon.png",
           "menuIcon": true,
           "name": "MENU_ICON",
+          "type": "bitmap"
+        },
+        {
+          "file": "images/status-dnd.png",
+          "name": "STATUS_DND",
+          "type": "bitmap"
+        },
+        {
+          "file": "images/status-connected.png",
+          "name": "STATUS_CONNECTED",
+          "type": "bitmap"
+        },
+        {
+          "file": "images/status-disconnected.png",
+          "name": "STATUS_DISCONNECTED",
           "type": "bitmap"
         }
       ]

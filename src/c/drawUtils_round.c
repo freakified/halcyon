@@ -110,23 +110,23 @@ void draw_ring_layer(Layer *layer, GContext *ctx) {
   int dayStartAngle = (int)((shiftedSunriseMinute / 1440.0f) * TRIG_MAX_ANGLE);
   int dayEndAngle = (int)((shiftedSunsetMinute / 1440.0f) * TRIG_MAX_ANGLE);
 
-  // Note: this *will* break if there isn't daylight at noon, but luckily
-  // that doesn't happen very often
-
-  // Draw the top left area
-  graphics_context_set_fill_color(ctx, currentTheme.ringDayColor);
-  graphics_fill_radial(ctx, draw_bounds, GOvalScaleModeFitCircle,
-                       expanded_thickness, 0, dayEndAngle);
-
-  // Draw the top right area
-  graphics_context_set_fill_color(ctx, currentTheme.ringDayColor);
-  graphics_fill_radial(ctx, draw_bounds, GOvalScaleModeFitCircle,
-                       expanded_thickness, dayStartAngle, TRIG_MAX_ANGLE);
-
-  // Draw the night area
+  // Draw the night area as the whole ring, then the day on top of it
   graphics_context_set_fill_color(ctx, currentTheme.ringNightColor);
   graphics_fill_radial(ctx, draw_bounds, GOvalScaleModeFitCircle,
-                       expanded_thickness, dayEndAngle, dayStartAngle);
+                       expanded_thickness, 0, TRIG_MAX_ANGLE);
+
+  graphics_context_set_fill_color(ctx, currentTheme.ringDayColor);
+  if (dayStartAngle > dayEndAngle) {
+    // Usual case: daylight at noon, so the day wraps past the top
+    graphics_fill_radial(ctx, draw_bounds, GOvalScaleModeFitCircle,
+                         expanded_thickness, dayStartAngle, TRIG_MAX_ANGLE);
+    graphics_fill_radial(ctx, draw_bounds, GOvalScaleModeFitCircle,
+                         expanded_thickness, 0, dayEndAngle);
+  } else {
+    // Night at noon (e.g. a far-away manual location)
+    graphics_fill_radial(ctx, draw_bounds, GOvalScaleModeFitCircle,
+                         expanded_thickness, dayStartAngle, dayEndAngle);
+  }
 
   // Calculate the angle for the sunrise/sunset arcs to be centered around the
   // times

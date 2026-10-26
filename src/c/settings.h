@@ -155,6 +155,8 @@ typedef struct {
   int16_t altCity2UtcOffset;
   int16_t localUtcOffset;
   bool usePrimaryFontForAllWidgets;
+  bool enableStatusBar;
+  bool statusShowConnection; // show "connected" icon even when connected
 } Settings;
 
 typedef struct {
@@ -214,6 +216,8 @@ typedef struct {
   int16_t altCity2UtcOffset;
   int16_t localUtcOffset;
   bool usePrimaryFontForAllWidgets;
+  bool enableStatusBar;
+  bool statusShowConnection; // show "connected" icon even when connected
 } StoredSettingsExtra;
 
 typedef char StoredSettings_must_fit_in_persist_data
