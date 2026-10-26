@@ -191,10 +191,6 @@ ColorTheme getCurrentColorTheme() {
 
   bool useNight = globalSettings.useNightTheme && isNightTime(currentMinutes);
 
-  APP_LOG(APP_LOG_LEVEL_DEBUG,
-          "getCurrentColorTheme: useNightTheme=%d, useNight=%d",
-          globalSettings.useNightTheme, useNight);
-
   if (useNight) {
     theme.timeColor = globalSettings.nightTimeColor;
     theme.subtextPrimaryColor = globalSettings.nightSubtextPrimaryColor;

@@ -21,6 +21,11 @@ void messaging_init(void (*processed_callback)(void),
 }
 
 void inbox_received_callback(DictionaryIterator *iterator, void *context) {
+  // Most messages are the half-hourly weather refresh, which often changes
+  // nothing; snapshot the settings so flash is only rewritten when needed.
+  static Settings previousSettings;
+  memcpy(&previousSettings, &globalSettings, sizeof(Settings));
+
   // Process configuration data
   Tuple *timeColor_tuple = dict_find(iterator, MESSAGE_KEY_SETTING_TIME_COLOR);
   Tuple *subTextPrimaryColor_tuple =
@@ -306,14 +311,15 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
     globalSettings.widgetLowerSecondary[WIDGET_TEXT_LEN - 1] = '\0';
   }
 
-  if (weatherSunriseMinute_tuple != NULL) {
-    solarUtils_setSolarMinutes((int)weatherSunriseMinute_tuple->value->int32,
-                               currentSolarInfo.sunsetMinute);
-  }
-
-  if (weatherSunsetMinute_tuple != NULL) {
-    solarUtils_setSolarMinutes(currentSolarInfo.sunriseMinute,
-                               (int)weatherSunsetMinute_tuple->value->int32);
+  // set both at once so they're persisted in a single write
+  if (weatherSunriseMinute_tuple != NULL || weatherSunsetMinute_tuple != NULL) {
+    solarUtils_setSolarMinutes(
+        weatherSunriseMinute_tuple != NULL
+            ? (int)weatherSunriseMinute_tuple->value->int32
+            : currentSolarInfo.sunriseMinute,
+        weatherSunsetMinute_tuple != NULL
+            ? (int)weatherSunsetMinute_tuple->value->int32
+            : currentSolarInfo.sunsetMinute);
   }
 
   if (tempUnit_tuple != NULL) {
@@ -351,7 +357,10 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
         (int16_t)localUtcOffset_tuple->value->int32;
   }
 
-  Settings_saveToStorage();
+  Settings_updateDynamicSettings();
+  if (memcmp(&previousSettings, &globalSettings, sizeof(Settings)) != 0) {
+    Settings_saveToStorage();
+  }
 
   message_processed_callback();
 }
@@ -373,6 +382,11 @@ void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
 }
 
 void messaging_request_update() {
+  // Sending would just fail; main re-requests when the phone reconnects.
+  if (!connection_service_peek_pebble_app_connection()) {
+    return;
+  }
+
   DictionaryIterator *iter;
   AppMessageResult result = app_message_outbox_begin(&iter);
 
