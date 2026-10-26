@@ -41,9 +41,10 @@ export const getDefaultSettings = (capabilities: Capabilities): Settings => ({
   SETTING_WIDGET_LOWER_SECONDARY: capabilities.HEALTH ? '{steps} {t:STEPS}' : '{t:BATTERY} {batt}%',
   SETTING_TEMP_UNIT: 0,
   SETTING_LANGUAGE: 0,
-  SETTING_ALT_CITY: 'SAN FRANCISCO',
-  SETTING_ALT_LABEL: 'SFO',
-  SETTING_ALT_CITY2: 'UTC',
+  // matches the watch's own defaults (src/c/settings.c)
+  SETTING_ALT_ZONE: 'Asia/Tokyo',
+  SETTING_ALT_LABEL: 'TYO',
+  SETTING_ALT_ZONE2: 'UTC',
   SETTING_ALT_LABEL2: 'UTC',
   SETTING_USE_GPS_LOCATION: 1,
   SETTING_MANUAL_LOCATION_NAME: '',
