@@ -84,6 +84,11 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
   Tuple *usePrimaryFontForAllWidgets_tuple =
       dict_find(iterator, MESSAGE_KEY_SETTING_USE_PRIMARY_WIDGET_FONT);
 
+  Tuple *enableStatusBar_tuple =
+      dict_find(iterator, MESSAGE_KEY_SETTING_STATUS_BAR_ENABLED);
+  Tuple *statusShowConnection_tuple =
+      dict_find(iterator, MESSAGE_KEY_SETTING_STATUS_SHOW_CONNECTION);
+
   Tuple *showLeadingZero_tuple =
       dict_find(iterator, MESSAGE_KEY_SETTING_SHOW_LEADING_ZERO);
 
@@ -265,6 +270,15 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
             (int)pipVisibility_tuple->value->int8);
     globalSettings.pipVisibility =
         (PipVisibilityType)pipVisibility_tuple->value->int8;
+  }
+
+  if (enableStatusBar_tuple != NULL) {
+    globalSettings.enableStatusBar = (bool)enableStatusBar_tuple->value->int8;
+  }
+
+  if (statusShowConnection_tuple != NULL) {
+    globalSettings.statusShowConnection =
+        (bool)statusShowConnection_tuple->value->int8;
   }
 
   if (showLeadingZero_tuple != NULL) {

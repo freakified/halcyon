@@ -6,6 +6,7 @@
 #include "messaging.h"
 #include "settings.h"
 #include "solarUtils.h"
+#include "status_bar.h"
 #include "text_metrics.h"
 #include "utils.h"
 #include "widgets.h"
@@ -272,6 +273,9 @@ static void update_clock() {
   // redraw solar ring layer
   layer_mark_dirty(ringLayer);
   layer_mark_dirty(centerLayer);
+
+  // quiet time can toggle between ticks
+  StatusBar_redraw();
 }
 
 // settings might have changed, so recalculate solar data and refresh screen
@@ -322,6 +326,9 @@ static void main_window_load(Window *window) {
   layer_set_update_proc(ringLayer, draw_ring_layer);
   layer_add_child(shiftingLayer, ringLayer);
 
+  // status icon sits in the top of the sun ring, above the ring layer
+  StatusBar_init(windowLayer);
+
   // subscribe to the unobstructed area events
   UnobstructedAreaHandlers handlers = {.change = onUnobstructedAreaChange,
                                        .did_change =
@@ -337,6 +344,7 @@ static void main_window_load(Window *window) {
 
 static void main_window_unload(Window *window) {
   // destroy everything
+  StatusBar_deinit();
   layer_destroy(ringLayer);
   layer_destroy(infoLayer);
   layer_destroy(centerLayer);
@@ -353,6 +361,8 @@ static void health_handler(HealthEventType event, void *context) {
   }
 }
 #endif
+
+static void bluetooth_handler(bool connected) { StatusBar_redraw(); }
 
 static void update_request_timer_callback(void *data);
 
@@ -407,6 +417,8 @@ static void init() {
   health_service_events_subscribe(health_handler, NULL);
 #endif
 
+  bluetooth_connection_service_subscribe(bluetooth_handler);
+
   // Schedule initial update request with short delay to give PKJS time to start
   schedule_next_update_request(UPDATE_REQUEST_INITIAL_DELAY_MS);
 }
@@ -418,6 +430,7 @@ static void deinit() {
 #if defined(PBL_HEALTH)
   health_service_events_unsubscribe();
 #endif
+  bluetooth_connection_service_unsubscribe();
   window_destroy(mainWindow);
 }
 

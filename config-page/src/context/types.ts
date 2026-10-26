@@ -65,6 +65,8 @@ export interface Settings {
   SETTING_USE_NIGHT_THEME: number;
   SETTING_PIP_VISIBILITY: number;
   SETTING_SHOW_LEADING_ZERO: number;
+  SETTING_STATUS_BAR_ENABLED: number;
+  SETTING_STATUS_SHOW_CONNECTION: number; // show "connected" icon even when connected
   SETTING_WIDGET_UPPER_SECONDARY: string;
   SETTING_WIDGET_UPPER_PRIMARY: string;
   SETTING_WIDGET_LOWER_PRIMARY: string;
