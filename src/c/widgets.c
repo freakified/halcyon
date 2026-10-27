@@ -149,6 +149,10 @@ void widget_get_text(const char *format_string, char *buf, int buf_len) {
         } else if (strncmp(token, "year", token_len) == 0 && token_len == 4) {
           snprintf(temp, sizeof(temp), "%d", t->tm_year + 1900);
           matched = true;
+        } else if (strncmp(token, "abbreviated_year", token_len) == 0 &&
+                   token_len == 16) {
+          snprintf(temp, sizeof(temp), "%d", (t->tm_year + 1900) % 100);
+          matched = true;
         } else if (strncmp(token, "day_of_year", token_len) == 0 &&
                    token_len == 11) {
           snprintf(temp, sizeof(temp), "%d", t->tm_yday + 1);
