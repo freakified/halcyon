@@ -146,8 +146,11 @@ static void status_bar_update(Layer *layer, GContext *ctx) {
       contrasting_color(ring_color_at_noon(&theme, bounds.size.w)));
 
   GSize size = gbitmap_get_bounds(statusIcon).size;
-  GRect iconRect = GRect((bounds.size.w - size.w) / 2,
-                         (bounds.size.h - size.h) / 2, size.w, size.h);
+  // nudged down a pixel on rect so it sits visually centered in the band
+  GRect iconRect =
+      GRect((bounds.size.w - size.w) / 2,
+            (bounds.size.h - size.h) / 2 + PBL_IF_ROUND_ELSE(0, 1), size.w,
+            size.h);
 
   graphics_context_set_compositing_mode(ctx, GCompOpSet);
   graphics_draw_bitmap_in_rect(ctx, statusIcon, iconRect);
