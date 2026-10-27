@@ -107,12 +107,10 @@ export const SettingsPage: React.FC = () => {
             <ColorPicker
               label="Dial marker color (primary)"
               messageKey="SETTING_PIP_COLOR_PRIMARY"
-              bwAllowGrey={false}
             />
             <ColorPicker
               label="Dial marker color (secondary)"
               messageKey="SETTING_PIP_COLOR_SECONDARY"
-              bwAllowGrey={false}
             />
             <ColorPicker
               label="Ring outline color"
