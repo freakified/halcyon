@@ -9,8 +9,8 @@ import { loadSavedThemes } from '../hooks/useSavedThemes';
 
 interface ConfigContextType {
   settings: Settings;
-  updateSetting: (key: string, value: any) => void;
-  updateSettings: (partial: Record<string, any>) => void;
+  updateSetting: (key: string, value: unknown) => void;
+  updateSettings: (partial: Record<string, unknown>) => void;
   resetToDefaults: () => void;
   save: () => void;
 }
@@ -80,11 +80,11 @@ export const PebbleConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return withThemeSelections(loaded);
   });
 
-  const updateSetting = (key: string, value: any) => {
+  const updateSetting = (key: string, value: unknown) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
-  const updateSettings = (partial: Record<string, any>) => {
+  const updateSettings = (partial: Record<string, unknown>) => {
     setSettings((prev) => ({ ...prev, ...partial }));
   };
 
