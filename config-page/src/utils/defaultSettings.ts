@@ -3,6 +3,7 @@ import { Settings, Capabilities } from '../context/types';
 export const getDefaultSettings = (capabilities: Capabilities): Settings => ({
   SETTING_THEME: '0',
   SETTING_NIGHT_THEME: '0',
+  SETTING_WIDGET_THEME: '0',
   SETTING_TIME_COLOR: '000000',
   SETTING_SUBTEXT_PRIMARY_COLOR: '000000',
   SETTING_SUBTEXT_SECONDARY_COLOR: capabilities.BW ? '000000' : '555555',

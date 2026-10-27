@@ -14,13 +14,8 @@ import {
   LocationSection,
 } from '../components';
 import { useSavedThemes } from '../hooks/useSavedThemes';
-import lightThemes from '../data/light-themes.json';
-import neutralThemes from '../data/neutral-themes.json';
-import darkThemes from '../data/dark-themes.json';
-import lightThemesBw from '../data/light-themes-bw.json';
-import neutralThemesBw from '../data/neutral-themes-bw.json';
-import darkThemesBw from '../data/dark-themes-bw.json';
-import { prepareThemes } from '../utils/themeUtils';
+import customWidgetsIconUrl from '../assets/custom-widgets-icon.svg';
+import { DAY_COLOR_THEMES, NIGHT_COLOR_THEMES, WIDGET_THEMES } from '../utils/themeKinds';
 import {
   ALT_TIMEZONE_WIDGET_IDS,
   ALT_TIMEZONE2_WIDGET_IDS,
@@ -42,28 +37,32 @@ export const SettingsPage: React.FC = () => {
   const weatherWidgetSelected = containsWidgets(widgetValues, WEATHER_WIDGET_IDS);
 
   const activeThemes = React.useMemo(
-    () =>
-      capabilities.BW
-        ? prepareThemes(lightThemesBw, neutralThemesBw, darkThemesBw, false)
-        : prepareThemes(lightThemes, neutralThemes, darkThemes, false),
-    [capabilities.BW],
+    () => DAY_COLOR_THEMES.presets(capabilities),
+    [capabilities],
   );
 
   const activeNightThemes = React.useMemo(
-    () =>
-      capabilities.BW
-        ? prepareThemes(darkThemesBw, neutralThemesBw, lightThemesBw, true)
-        : prepareThemes(darkThemes, neutralThemes, lightThemes, true),
-    [capabilities.BW],
+    () => NIGHT_COLOR_THEMES.presets(capabilities),
+    [capabilities],
   );
 
-  const savedThemes = useSavedThemes();
+  const widgetThemes = React.useMemo(
+    () => WIDGET_THEMES.presets(capabilities),
+    [capabilities],
+  );
+
+  const daySavedThemes = useSavedThemes(DAY_COLOR_THEMES);
+  const nightSavedThemes = useSavedThemes(NIGHT_COLOR_THEMES);
+  const savedWidgetThemes = useSavedThemes(WIDGET_THEMES);
 
   const getDaySavedTheme = () =>
-    savedThemes.savedThemes.find((t) => t.id === settings.SETTING_THEME);
+    daySavedThemes.savedThemes.find((t) => t.id === settings.SETTING_THEME);
 
   const getNightSavedTheme = () =>
-    savedThemes.savedThemes.find((t) => t.id === settings.SETTING_NIGHT_THEME);
+    nightSavedThemes.savedThemes.find((t) => t.id === settings.SETTING_NIGHT_THEME);
+
+  const getSavedWidgetTheme = () =>
+    savedWidgetThemes.savedThemes.find((t) => t.id === settings.SETTING_WIDGET_THEME);
 
   return (
     <Page title="Halcyon Settings">
@@ -71,17 +70,18 @@ export const SettingsPage: React.FC = () => {
         <ThemePicker
           messageKey="SETTING_THEME"
           themes={activeThemes}
-          savedThemes={savedThemes.savedThemes}
+          savedThemes={daySavedThemes.savedThemes}
           label="Theme preset"
         />
         <CustomThemePanel
           themeId={settings.SETTING_THEME}
           savedTheme={getDaySavedTheme()}
-          onSave={(s) => savedThemes.saveTheme(s, false)}
-          onDelete={savedThemes.deleteTheme}
-          onImport={savedThemes.importTheme}
-          onExport={savedThemes.exportTheme}
+          onSave={daySavedThemes.saveTheme}
+          onDelete={daySavedThemes.deleteTheme}
+          onImport={daySavedThemes.importTheme}
+          onExport={daySavedThemes.exportTheme}
           onSelectTheme={(id) => updateSetting('SETTING_THEME', id)}
+          importTitle={DAY_COLOR_THEMES.importTitle}
         />
         {settings.SETTING_THEME === 'custom' && (
           <>
@@ -142,17 +142,18 @@ export const SettingsPage: React.FC = () => {
               label="Night theme preset"
               themes={activeNightThemes}
               watchPreviewProps={{ isNight: true }}
-              savedThemes={savedThemes.savedThemes}
+              savedThemes={nightSavedThemes.savedThemes}
             />
             <CustomThemePanel
               themeId={settings.SETTING_NIGHT_THEME}
               savedTheme={getNightSavedTheme()}
               watchPreviewProps={{ isNight: true }}
-              onSave={(s) => savedThemes.saveTheme(s, true)}
-              onDelete={savedThemes.deleteTheme}
-              onImport={savedThemes.importTheme}
-              onExport={savedThemes.exportTheme}
+              onSave={nightSavedThemes.saveTheme}
+              onDelete={nightSavedThemes.deleteTheme}
+              onImport={nightSavedThemes.importTheme}
+              onExport={nightSavedThemes.exportTheme}
               onSelectTheme={(id) => updateSetting('SETTING_NIGHT_THEME', id)}
+              importTitle={NIGHT_COLOR_THEMES.importTitle}
             />
             {settings.SETTING_NIGHT_THEME === 'custom' && (
               <>
@@ -216,7 +217,25 @@ export const SettingsPage: React.FC = () => {
       </Section>
 
       <Section title="Widgets">
-        <WidgetSelector />
+        <ThemePicker
+          messageKey="SETTING_WIDGET_THEME"
+          themes={widgetThemes}
+          savedThemes={savedWidgetThemes.savedThemes}
+          label="Widget preset"
+          customIcon={customWidgetsIconUrl}
+        />
+        <CustomThemePanel
+          themeId={settings.SETTING_WIDGET_THEME}
+          savedTheme={getSavedWidgetTheme()}
+          onSave={savedWidgetThemes.saveTheme}
+          onDelete={savedWidgetThemes.deleteTheme}
+          onImport={savedWidgetThemes.importTheme}
+          onExport={savedWidgetThemes.exportTheme}
+          onSelectTheme={(id) => updateSetting('SETTING_WIDGET_THEME', id)}
+          importTitle={WIDGET_THEMES.importTitle}
+        />
+        {/* the panel above already previews the live widgets */}
+        {settings.SETTING_WIDGET_THEME === 'custom' && <WidgetSelector showPreview={false} />}
       </Section>
 
       {altWidgetSelected && (
