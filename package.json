@@ -6,6 +6,7 @@
     "pebble-watchface"
   ],
   "private": true,
+  "packageManager": "pnpm@12.15.0",
   "scripts": {
     "check:i18n": "node scripts/check-languages.js"
   },

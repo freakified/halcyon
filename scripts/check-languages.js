@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Verifies that every language in src/pkjs/languages/<code>.js is present and
 // has complete weather, cardinal, and label strings.
-// Run via `npm run check:i18n`.
+// Run via `pnpm check:i18n`.
 
 var fs = require('fs');
 var path = require('path');

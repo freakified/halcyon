@@ -2,6 +2,7 @@
   "name": "halcyon-config-page",
   "version": "1.0.0",
   "type": "module",
+  "packageManager": "pnpm@12.15.0",
   "description": "Configuration page for Halcyon Pebble watchface",
   "scripts": {
     "dev": "vite --host",
