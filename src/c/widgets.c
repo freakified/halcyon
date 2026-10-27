@@ -265,8 +265,14 @@ void widget_get_text(const char *format_string, char *buf, int buf_len) {
                                   "alt_tz2_label", "alt_tz2_time",
                                   "alt_tz2_day", &matched);
           }
+        } else if (strncmp(token, "quiet", token_len) == 0 && token_len == 5) {
+          if (quiet_time_is_active()) {
+            snprintf(temp, sizeof(temp), "\U0001F319");
+          } else {
+            temp[0] = '\0';
+          }
+          matched = true;
         }
-
         if (matched) {
           // copy temp into buf
           int t_idx = 0;

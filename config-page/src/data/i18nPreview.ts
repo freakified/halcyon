@@ -153,6 +153,7 @@ export const renderPreview = (
     '{dist_unit}': isImperial ? 'MI' : 'KM',
     '{hr}': '72',
     '{batt}': '85',
+    '{quiet}':  '🌙',
     // Solar / weather (PKJS-side)
     '{sunrise}': '6:42',
     '{sunset}': '18:18',

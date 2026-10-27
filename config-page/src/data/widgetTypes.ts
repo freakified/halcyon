@@ -44,6 +44,7 @@ const WIDGET_TEMPLATES: WidgetOptionTemplate[] = [
   { value: '{hr} {t:BPM}', label: 'Current Heart Rate', category: 'Health' },
   // Device
   { value: '{t:BATTERY} {batt}%', label: 'Battery %', category: 'Device' },
+  { value: '{t:QUIET} {quiet}', label: 'Quiet Time On/Off', category: 'Device' },
   // Weather
   {
     value: '{temp}° ({thi}°/{tlo}°)',
@@ -91,6 +92,7 @@ export const WIDGET_TOKENS: WidgetToken[] = [
   { token: '{dist_unit}', label: 'Dist. Unit', category: 'Health & Device', requires: 'health' },
   { token: '{hr}', label: 'Heart Rate', category: 'Health & Device', requires: 'hrm' },
   { token: '{batt}', label: 'Battery', category: 'Health & Device' },
+  { token: '{quiet}', label: 'Quiet Time', category: 'Health & Device' },
   { token: '{temp}', label: 'Temp', category: 'Weather' },
   { token: '{thi}', label: 'High', category: 'Weather' },
   { token: '{tlo}', label: 'Low', category: 'Weather' },
