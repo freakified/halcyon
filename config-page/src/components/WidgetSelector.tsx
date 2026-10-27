@@ -286,7 +286,7 @@ const WidgetSlotControl: React.FC<WidgetSlotControlProps> = ({
     );
 };
 
-export const WidgetSelector: React.FC = () => {
+export const WidgetSelector: React.FC<{ showPreview?: boolean }> = ({ showPreview = true }) => {
     const capabilities = useCapabilities();
     const { settings } = useConfig();
     const lang = Number(settings.SETTING_LANGUAGE) || 0;
@@ -305,9 +305,11 @@ export const WidgetSelector: React.FC = () => {
 
     return (
         <div className="widget-selector-container">
-            <div className={`widget-selector-preview ${isRound ? 'round' : 'rect'}`}>
-                <WatchPreview />
-            </div>
+            {showPreview && (
+                <div className={`widget-selector-preview ${isRound ? 'round' : 'rect'}`}>
+                    <WatchPreview />
+                </div>
+            )}
             <div className="widget-selector-controls">
                 <WidgetSlotControl
                     label="Upper text 2"

@@ -32,8 +32,11 @@ export interface Capabilities {
 }
 
 export interface Settings {
+  // which preset each picker shows selected; page state only, worked out
+  // from the settings on load (see matchThemeId) and never sent to the watch
   SETTING_THEME: string;
   SETTING_NIGHT_THEME: string;
+  SETTING_WIDGET_THEME: string;
   SETTING_TIME_COLOR: string;
   SETTING_SUBTEXT_PRIMARY_COLOR: string;
   SETTING_SUBTEXT_SECONDARY_COLOR: string;

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from 'react-aria-components';
 import { WatchPreview, WatchPreviewProps } from './WatchPreview';
 import { ImportThemeModal } from './ImportThemeModal';
-import { SavedTheme, remapToNightKeys } from '../hooks/useSavedThemes';
+import { SavedTheme } from '../hooks/useSavedThemes';
 import { useCapabilities, useConfig } from '../context/PebbleConfigContext';
 import { Settings } from '../context/types';
 import { copyToClipboard } from '../utils/clipboard';
@@ -22,9 +22,11 @@ interface CustomThemePanelProps {
   /** Called to import a theme from JSON */
   onImport: (json: string) => { success: boolean; error?: string };
   /** Called to export a theme to JSON string */
-  onExport: (settings: Record<string, string>) => string;
+  onExport: (settings: Record<string, unknown>) => string;
   /** Called when themes change and we need to select a new one */
   onSelectTheme: (themeId: string) => void;
+  /** Heading of the import dialog */
+  importTitle?: string;
 }
 
 export const CustomThemePanel: React.FC<CustomThemePanelProps> = ({
@@ -36,6 +38,7 @@ export const CustomThemePanel: React.FC<CustomThemePanelProps> = ({
   onImport,
   onExport,
   onSelectTheme,
+  importTitle,
 }) => {
   const { settings } = useConfig();
   const capabilities = useCapabilities();
@@ -45,7 +48,6 @@ export const CustomThemePanel: React.FC<CustomThemePanelProps> = ({
   const isCustom = themeId === 'custom';
   const isSaved = !!savedTheme;
   const isRound = capabilities.ROUND && !capabilities.RECT;
-  const isNight = watchPreviewProps?.isNight ?? false;
 
   const handleSave = () => {
     const theme = onSave(settings);
@@ -53,8 +55,8 @@ export const CustomThemePanel: React.FC<CustomThemePanelProps> = ({
   };
 
   const handleShare = async () => {
-    const settingsToExport = isSaved ? savedTheme!.settings : getVisibleSettings();
-    const json = onExport(settingsToExport);
+    // the hook picks this kind's settings out of the live ones
+    const json = onExport(isSaved ? savedTheme!.settings : { ...settings });
     const success = await copyToClipboard(json);
     if (success) {
       setCopyFeedback(true);
@@ -80,29 +82,11 @@ export const CustomThemePanel: React.FC<CustomThemePanelProps> = ({
     return result;
   };
 
-  /** Extract color settings from the current live settings */
-  const getVisibleSettings = (): Record<string, string> => {
-    const colorSettings: Record<string, string> = {};
-    const keys = Object.keys(settings).filter(
-      (k) => k.startsWith('SETTING_') && k.includes('COLOR')
-    );
-    for (const key of keys) {
-      const isNightKey = key.startsWith('SETTING_NIGHT_');
-      if (isNight ? isNightKey : !isNightKey) {
-        colorSettings[key] = String(settings[key as keyof Settings]);
-      }
-    }
-    return colorSettings;
-  };
-
   return (
     <div className="halite-custom-panel">
       <div className={`halite-custom-panel-preview ${isRound ? 'round' : 'rect'}`}>
         <WatchPreview
-          overrideSettings={isSaved
-            ? (isNight ? remapToNightKeys(savedTheme!.settings) : savedTheme!.settings)
-            : undefined
-          }
+          overrideSettings={isSaved ? savedTheme!.settings : undefined}
           {...watchPreviewProps}
         />
       </div>
@@ -146,6 +130,7 @@ export const CustomThemePanel: React.FC<CustomThemePanelProps> = ({
         isOpen={importOpen}
         onOpenChange={setImportOpen}
         onImport={handleImport}
+        title={importTitle}
       />
     </div>
   );
