@@ -42,7 +42,7 @@ module.exports = {
     "北西"
   ],
   "labels": {
-    "STEPS": "歩数",
+    "STEPS": "歩",
     "WEEK": "週",
     "DAY": "日",
     "BATTERY": "バッテリー",
