@@ -167,7 +167,11 @@ void widget_get_text(const char *format_string, char *buf, int buf_len) {
           snprintf(temp, sizeof(temp), "%02d", t->tm_mon + 1);
           matched = true;
         } else if (strncmp(token, "year", token_len) == 0 && token_len == 4) {
-          snprintf(temp, sizeof(temp), "%d", t->tm_year + 1900);
+          strftime(temp, sizeof(temp), "%Y", t);
+          matched = true;
+        } else if (strncmp(token, "year_short", token_len) == 0 &&
+                   token_len == 10) {
+          strftime(temp, sizeof(temp), "%y", t);
           matched = true;
         } else if (strncmp(token, "day_of_year", token_len) == 0 &&
                    token_len == 11) {
