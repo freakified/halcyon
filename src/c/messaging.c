@@ -46,6 +46,8 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
       dict_find(iterator, MESSAGE_KEY_SETTING_SUN_STROKE_COLOR);
   Tuple *sunFillColor_tuple =
       dict_find(iterator, MESSAGE_KEY_SETTING_SUN_FILL_COLOR);
+  Tuple *alarmColor_tuple =
+      dict_find(iterator, MESSAGE_KEY_SETTING_ALARM_COLOR);
 
   // night theme colors
   Tuple *nightTimeColor_tuple =
@@ -74,6 +76,8 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
       dict_find(iterator, MESSAGE_KEY_SETTING_NIGHT_SUN_STROKE_COLOR);
   Tuple *nightSunFillColor_tuple =
       dict_find(iterator, MESSAGE_KEY_SETTING_NIGHT_SUN_FILL_COLOR);
+  Tuple *nightAlarmColor_tuple =
+      dict_find(iterator, MESSAGE_KEY_SETTING_NIGHT_ALARM_COLOR);
 
   Tuple *useNightTheme_tuple =
       dict_find(iterator, MESSAGE_KEY_SETTING_USE_NIGHT_THEME);
@@ -184,6 +188,10 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
         GColorFromHEX(sunFillColor_tuple->value->int32);
   }
 
+  if (alarmColor_tuple != NULL) {
+    globalSettings.alarmColor = GColorFromHEX(alarmColor_tuple->value->int32);
+  }
+
   // night theme colors
   if (nightTimeColor_tuple != NULL) {
     globalSettings.nightTimeColor =
@@ -248,6 +256,11 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
   if (nightSunFillColor_tuple != NULL) {
     globalSettings.nightSunFillColor =
         GColorFromHEX(nightSunFillColor_tuple->value->int32);
+  }
+
+  if (nightAlarmColor_tuple != NULL) {
+    globalSettings.nightAlarmColor =
+        GColorFromHEX(nightAlarmColor_tuple->value->int32);
   }
 
   if (useLargeFonts_tuple != NULL) {

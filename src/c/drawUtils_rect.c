@@ -215,8 +215,8 @@ void draw_ring_layer(Layer *layer, GContext *ctx) {
     int shiftedAlarmMinute = (nextAlarmMinute + 15 * 60) % (24 * 60);
     GPoint alarmPos =
         get_rect_position(shiftedAlarmMinute / 1440.0f, sunBounds);
-    draw_alarm_marker(ctx, alarmPos, currentTheme.sunFillColor,
-                      currentTheme.sunStrokeColor);
+    draw_alarm_marker(ctx, alarmPos, currentTheme.alarmColor,
+                      currentTheme.ringStrokeColor);
   }
 #endif
 

@@ -40,6 +40,7 @@ export const SettingsPage: React.FC = () => {
   const altWidgetSelected = containsWidgets(widgetValues, ALT_TIMEZONE_WIDGET_IDS);
   const alt2WidgetSelected = containsWidgets(widgetValues, ALT_TIMEZONE2_WIDGET_IDS);
   const weatherWidgetSelected = containsWidgets(widgetValues, WEATHER_WIDGET_IDS);
+  const alarmShown = capabilities.ALARMS && settings.SETTING_SHOW_NEXT_ALARM === 1;
 
   const activeThemes = React.useMemo(
     () =>
@@ -125,6 +126,9 @@ export const SettingsPage: React.FC = () => {
               bwAllowGrey={false}
             />
             <ColorPicker label="Sun fill color" messageKey="SETTING_SUN_FILL_COLOR" />
+            {alarmShown && (
+              <ColorPicker label="Alarm marker color" messageKey="SETTING_ALARM_COLOR" />
+            )}
           </>
         )}
       </Section>
@@ -209,6 +213,9 @@ export const SettingsPage: React.FC = () => {
                   bwAllowGrey={false}
                 />
                 <ColorPicker label="Sun fill color" messageKey="SETTING_NIGHT_SUN_FILL_COLOR" />
+                {alarmShown && (
+                  <ColorPicker label="Alarm marker color" messageKey="SETTING_NIGHT_ALARM_COLOR" />
+                )}
               </>
             )}
           </>

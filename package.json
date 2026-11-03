@@ -85,7 +85,9 @@
       "REQUEST_UPDATE",
       "WATCH_IS_24H",
       "SETTING_USE_PRIMARY_WIDGET_FONT",
-      "SETTING_SHOW_NEXT_ALARM"
+      "SETTING_SHOW_NEXT_ALARM",
+      "SETTING_ALARM_COLOR",
+      "SETTING_NIGHT_ALARM_COLOR"
     ],
     "resources": {
       "media": [

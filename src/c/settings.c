@@ -19,6 +19,8 @@ static void populateStoredSettingsExtra(StoredSettingsExtra *storedSettingsExtra
   storedSettingsExtra->usePrimaryFontForAllWidgets =
       globalSettings.usePrimaryFontForAllWidgets;
   storedSettingsExtra->showNextAlarm = globalSettings.showNextAlarm;
+  storedSettingsExtra->alarmColor = globalSettings.alarmColor;
+  storedSettingsExtra->nightAlarmColor = globalSettings.nightAlarmColor;
 }
 
 void Settings_init() { Settings_loadFromStorage(); }
@@ -43,6 +45,7 @@ void Settings_loadFromStorage() {
   globalSettings.ringSunsetColor = DEFAULT_RING_SUNSET_COLOR;
   globalSettings.sunStrokeColor = DEFAULT_SUN_STROKE_COLOR;
   globalSettings.sunFillColor = DEFAULT_SUN_FILL_COLOR;
+  globalSettings.alarmColor = DEFAULT_ALARM_COLOR;
 
   // night theme colors
   globalSettings.nightTimeColor = DEFAULT_NIGHT_TIME_COLOR;
@@ -59,6 +62,7 @@ void Settings_loadFromStorage() {
   globalSettings.nightRingSunsetColor = DEFAULT_NIGHT_RING_SUNSET_COLOR;
   globalSettings.nightSunStrokeColor = DEFAULT_NIGHT_SUN_STROKE_COLOR;
   globalSettings.nightSunFillColor = DEFAULT_NIGHT_SUN_FILL_COLOR;
+  globalSettings.nightAlarmColor = DEFAULT_NIGHT_ALARM_COLOR;
 
   // various appearance settings
   globalSettings.useNightTheme = true;
@@ -130,6 +134,8 @@ void Settings_loadFromStorage() {
       globalSettings.usePrimaryFontForAllWidgets =
           storedSettingsExtra.usePrimaryFontForAllWidgets;
       globalSettings.showNextAlarm = storedSettingsExtra.showNextAlarm;
+      globalSettings.alarmColor = storedSettingsExtra.alarmColor;
+      globalSettings.nightAlarmColor = storedSettingsExtra.nightAlarmColor;
     }
   }
 
@@ -204,6 +210,7 @@ ColorTheme getCurrentColorTheme() {
     theme.ringSunsetColor = globalSettings.nightRingSunsetColor;
     theme.sunStrokeColor = globalSettings.nightSunStrokeColor;
     theme.sunFillColor = globalSettings.nightSunFillColor;
+    theme.alarmColor = globalSettings.nightAlarmColor;
   } else {
     theme.timeColor = globalSettings.timeColor;
     theme.subtextPrimaryColor = globalSettings.subtextPrimaryColor;
@@ -218,6 +225,7 @@ ColorTheme getCurrentColorTheme() {
     theme.ringSunsetColor = globalSettings.ringSunsetColor;
     theme.sunStrokeColor = globalSettings.sunStrokeColor;
     theme.sunFillColor = globalSettings.sunFillColor;
+    theme.alarmColor = globalSettings.alarmColor;
   }
 
   return theme;

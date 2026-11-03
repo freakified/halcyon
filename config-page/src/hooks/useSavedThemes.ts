@@ -25,6 +25,7 @@ export const DAY_THEME_KEYS: (keyof Settings)[] = [
     'SETTING_RING_SUNSET_COLOR',
     'SETTING_SUN_STROKE_COLOR',
     'SETTING_SUN_FILL_COLOR',
+    'SETTING_ALARM_COLOR',
 ];
 
 /** Night-mode equivalents of DAY_THEME_KEYS, in the same order */
@@ -42,6 +43,7 @@ export const NIGHT_THEME_KEYS: (keyof Settings)[] = [
     'SETTING_NIGHT_RING_SUNSET_COLOR',
     'SETTING_NIGHT_SUN_STROKE_COLOR',
     'SETTING_NIGHT_SUN_FILL_COLOR',
+    'SETTING_NIGHT_ALARM_COLOR',
 ];
 
 /** Convert any SETTING_NIGHT_* keys to their SETTING_* equivalents */

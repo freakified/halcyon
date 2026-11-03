@@ -172,8 +172,8 @@ void draw_ring_layer(Layer *layer, GContext *ctx) {
     int alarmAngle = (int)((shiftedAlarmMinute / 1440.0f) * TRIG_MAX_ANGLE);
     GPoint alarmPos =
         gpoint_from_polar(sunBoundingRect, GOvalScaleModeFitCircle, alarmAngle);
-    draw_alarm_marker(ctx, alarmPos, currentTheme.sunFillColor,
-                      currentTheme.sunStrokeColor);
+    draw_alarm_marker(ctx, alarmPos, currentTheme.alarmColor,
+                      currentTheme.ringStrokeColor);
   }
 #endif
 
