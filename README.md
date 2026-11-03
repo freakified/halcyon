@@ -1,4 +1,4 @@
-![Halcyon showing 10:38AM](screenshots/platforms/emery-am.png) ![Halcyon showing 10:38PM](screenshots/platforms/emery-pm.png)
+![Halcyon showing 10:38AM, with a 7:00AM alarm marked on the dial](screenshots/platforms/emery-am.png) ![Halcyon showing 10:38PM, with a 7:00AM alarm marked on the dial](screenshots/platforms/emery-pm.png)
 
 # Halcyon
 An analog-digital watchface featuring the solar day!
@@ -8,6 +8,7 @@ Halcyon represents the 24 hours of the day as a ring around the edges of your wa
 ### Features:
 
 - Watch the hours of your day slip away as the sun moves through the 24-hour outer dial!
+- See your next alarm right on the dial! A little bell marks when it'll ring, so you can watch the sun creep toward it! (Pebble 2 Duo, Pebble Time 2, and Pebble Round 2 only)
 - Select from various different exciting color presets, with separate themes for nighttime and daytime!
 - An absolutely unreasonable amount of color customization! Create, save, load, and share custom themes!
 - Widgets! Up to 4 user-selectable widgets, including weather, heartrate, steps, and more!
