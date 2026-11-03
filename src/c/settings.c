@@ -18,6 +18,7 @@ static void populateStoredSettingsExtra(StoredSettingsExtra *storedSettingsExtra
   storedSettingsExtra->localUtcOffset = globalSettings.localUtcOffset;
   storedSettingsExtra->usePrimaryFontForAllWidgets =
       globalSettings.usePrimaryFontForAllWidgets;
+  storedSettingsExtra->showNextAlarm = globalSettings.showNextAlarm;
 }
 
 void Settings_init() { Settings_loadFromStorage(); }
@@ -91,6 +92,7 @@ void Settings_loadFromStorage() {
   globalSettings.altCity2UtcOffset = 0;
   globalSettings.localUtcOffset = 0;
   globalSettings.usePrimaryFontForAllWidgets = false;
+  globalSettings.showNextAlarm = true;
 
   if (persist_exists(SETTINGS_PERSIST_KEY)) {
     const int stored_size = persist_get_size(SETTINGS_PERSIST_KEY);
@@ -127,6 +129,7 @@ void Settings_loadFromStorage() {
       globalSettings.localUtcOffset = storedSettingsExtra.localUtcOffset;
       globalSettings.usePrimaryFontForAllWidgets =
           storedSettingsExtra.usePrimaryFontForAllWidgets;
+      globalSettings.showNextAlarm = storedSettingsExtra.showNextAlarm;
     }
   }
 

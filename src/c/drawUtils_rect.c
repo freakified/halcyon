@@ -1,5 +1,6 @@
 #ifdef PBL_RECT
 
+#include "alarmUtils.h"
 #include "drawUtils.h"
 #include "settings.h"
 #include "solarUtils.h"
@@ -206,6 +207,18 @@ void draw_ring_layer(Layer *layer, GContext *ctx) {
   graphics_draw_rect(
       ctx, GRect(twilightEndRect.origin.x - 2, twilightEndRect.origin.y - 2,
                  twilightEndRect.size.w + 4, twilightEndRect.size.h + 4));
+
+#ifdef HAS_ALARMS
+  // mark the next alarm along the sun's path (underneath the sun, in case
+  // it's nearly time)
+  if (globalSettings.showNextAlarm && nextAlarmMinute != NO_ALARM) {
+    int shiftedAlarmMinute = (nextAlarmMinute + 15 * 60) % (24 * 60);
+    GPoint alarmPos =
+        get_rect_position(shiftedAlarmMinute / 1440.0f, sunBounds);
+    draw_alarm_marker(ctx, alarmPos, currentTheme.sunFillColor,
+                      currentTheme.sunStrokeColor);
+  }
+#endif
 
   // cue the sun!
   graphics_context_set_fill_color(ctx, currentTheme.sunFillColor);

@@ -155,6 +155,7 @@ typedef struct {
   int16_t altCity2UtcOffset;
   int16_t localUtcOffset;
   bool usePrimaryFontForAllWidgets;
+  bool showNextAlarm;
 } Settings;
 
 typedef struct {
@@ -214,6 +215,10 @@ typedef struct {
   int16_t altCity2UtcOffset;
   int16_t localUtcOffset;
   bool usePrimaryFontForAllWidgets;
+  // older versions saved this byte as zeroed padding, so only a setting that
+  // defaults to 0 can go here
+  uint8_t reserved;
+  bool showNextAlarm;
 } StoredSettingsExtra;
 
 typedef char StoredSettings_must_fit_in_persist_data

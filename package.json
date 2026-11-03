@@ -84,7 +84,8 @@
       "LOCAL_UTC_OFFSET",
       "REQUEST_UPDATE",
       "WATCH_IS_24H",
-      "SETTING_USE_PRIMARY_WIDGET_FONT"
+      "SETTING_USE_PRIMARY_WIDGET_FONT",
+      "SETTING_SHOW_NEXT_ALARM"
     ],
     "resources": {
       "media": [

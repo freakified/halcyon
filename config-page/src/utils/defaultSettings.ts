@@ -34,6 +34,7 @@ export const getDefaultSettings = (capabilities: Capabilities): Settings => ({
   SETTING_USE_NIGHT_THEME: 1,
   SETTING_PIP_VISIBILITY: 0,
   SETTING_SHOW_LEADING_ZERO: 0,
+  SETTING_SHOW_NEXT_ALARM: 1,
   // Widget slots default to format strings
   SETTING_WIDGET_UPPER_SECONDARY: '{temp}° ({thi}°/{tlo}°)',
   SETTING_WIDGET_UPPER_PRIMARY: '{cond}',

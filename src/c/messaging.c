@@ -90,6 +90,9 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
   Tuple *pipVisibility_tuple =
       dict_find(iterator, MESSAGE_KEY_SETTING_PIP_VISIBILITY);
 
+  Tuple *showNextAlarm_tuple =
+      dict_find(iterator, MESSAGE_KEY_SETTING_SHOW_NEXT_ALARM);
+
   Tuple *widgetUpperSecondary_tuple =
       dict_find(iterator, MESSAGE_KEY_SETTING_WIDGET_UPPER_SECONDARY);
   Tuple *widgetUpperPrimary_tuple =
@@ -269,6 +272,10 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
 
   if (showLeadingZero_tuple != NULL) {
     globalSettings.showLeadingZero = (bool)showLeadingZero_tuple->value->int8;
+  }
+
+  if (showNextAlarm_tuple != NULL) {
+    globalSettings.showNextAlarm = (bool)showNextAlarm_tuple->value->int8;
   }
 
   if (widgetUpperSecondary_tuple != NULL) {

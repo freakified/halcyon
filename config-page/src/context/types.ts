@@ -29,6 +29,7 @@ export interface Capabilities {
   SMARTSTRAP_POWER: boolean;
   HEALTH: boolean;
   HRM: boolean;
+  ALARMS: boolean;
 }
 
 export interface Settings {
@@ -65,6 +66,7 @@ export interface Settings {
   SETTING_USE_NIGHT_THEME: number;
   SETTING_PIP_VISIBILITY: number;
   SETTING_SHOW_LEADING_ZERO: number;
+  SETTING_SHOW_NEXT_ALARM: number;
   SETTING_WIDGET_UPPER_SECONDARY: string;
   SETTING_WIDGET_UPPER_PRIMARY: string;
   SETTING_WIDGET_LOWER_PRIMARY: string;

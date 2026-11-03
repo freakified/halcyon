@@ -323,6 +323,13 @@ export const SettingsPage: React.FC = () => {
             { label: 'None', value: 2 },
           ]}
         />
+        {capabilities.ALARMS && (
+          <Toggle
+            label="Show next alarm"
+            description="Marks your next alarm on the ring when it's within 24 hours"
+            messageKey="SETTING_SHOW_NEXT_ALARM"
+          />
+        )}
       </Section>
       <DonationLink />
     </Page>

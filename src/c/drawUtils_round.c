@@ -1,5 +1,6 @@
 #ifdef PBL_ROUND
 
+#include "alarmUtils.h"
 #include "drawUtils.h"
 #include "settings.h"
 #include "solarUtils.h"
@@ -162,6 +163,19 @@ void draw_ring_layer(Layer *layer, GContext *ctx) {
   graphics_context_set_fill_color(ctx, currentTheme.ringSunsetColor);
   graphics_fill_radial(ctx, draw_bounds, GOvalScaleModeFitCircle,
                        expanded_thickness, sunsetStartAngle, sunsetEndAngle);
+
+#ifdef HAS_ALARMS
+  // Mark the next alarm along the sun's path (underneath the sun, in case
+  // it's nearly time)
+  if (globalSettings.showNextAlarm && nextAlarmMinute != NO_ALARM) {
+    int shiftedAlarmMinute = (nextAlarmMinute + hourShift * 60) % (24 * 60);
+    int alarmAngle = (int)((shiftedAlarmMinute / 1440.0f) * TRIG_MAX_ANGLE);
+    GPoint alarmPos =
+        gpoint_from_polar(sunBoundingRect, GOvalScaleModeFitCircle, alarmAngle);
+    draw_alarm_marker(ctx, alarmPos, currentTheme.sunFillColor,
+                      currentTheme.sunStrokeColor);
+  }
+#endif
 
   // Draw the sun position
   graphics_context_set_stroke_width(ctx, strokeWidth);
