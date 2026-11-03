@@ -24,6 +24,27 @@ export const timeValueToMinutes = (value: string): number | null => {
 export const getDayLengthMinutes = (sunrise: number, sunset: number) =>
   (sunset - sunrise + MINUTES_PER_DAY) % MINUTES_PER_DAY;
 
+/** Formats minutes since midnight in the viewer's locale, e.g. "7:00 PM". */
+const formatTimeOfDay = (minutes: number) =>
+  new Date(2000, 0, 1, Math.floor(minutes / 60), minutes % 60).toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+
+const formatDuration = (minutes: number) => {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  const hours = `${h} ${h === 1 ? 'hr' : 'hrs'}`;
+  return m ? `${hours} ${m} min` : hours;
+};
+
+/** e.g. "Day: 8:00 PM – 7:00 AM the next day (11 hrs)" */
+export const getDaySummary = (sunrise: number, sunset: number) => {
+  const nextDay = sunset < sunrise ? ' the next day' : '';
+  const length = formatDuration(getDayLengthMinutes(sunrise, sunset));
+  return `Day: ${formatTimeOfDay(sunrise)} – ${formatTimeOfDay(sunset)}${nextDay} (${length})`;
+};
+
 export const getManualSolarError = (settings: Settings): string | null => {
   if (!settings.SETTING_USE_MANUAL_SOLAR_TIMES) return null;
 
