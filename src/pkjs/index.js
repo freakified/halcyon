@@ -138,16 +138,25 @@ function getNextSolarEvent(solar, use24h, labels) {
   };
 }
 
+// Matches the watch's DEFAULT_SUNRISE_TIME / DEFAULT_SUNSET_TIME
+var DEFAULT_SOLAR = { sunriseMinute: 6 * 60, sunsetMinute: 18 * 60 };
+
 function isMinuteOfDay(value) {
   return typeof value === 'number' && value >= 0 && value < 24 * 60;
+}
+
+// Manual times are opt-in: only an explicit 1 from the config toggle turns
+// them on, so missing or unexpected values always mean "off".
+function usesManualSolar(settings) {
+  return !!settings && settings.SETTING_USE_MANUAL_SOLAR_TIMES === 1 &&
+    isMinuteOfDay(settings.SETTING_MANUAL_SUNRISE_MINUTE) &&
+    isMinuteOfDay(settings.SETTING_MANUAL_SUNSET_MINUTE);
 }
 
 // Returns the user's fixed sunrise/sunset when they've set them manually,
 // otherwise the times last calculated for the current location.
 function getSolar(settings) {
-  if (settings && settings.SETTING_USE_MANUAL_SOLAR_TIMES &&
-    isMinuteOfDay(settings.SETTING_MANUAL_SUNRISE_MINUTE) &&
-    isMinuteOfDay(settings.SETTING_MANUAL_SUNSET_MINUTE)) {
+  if (usesManualSolar(settings)) {
     return {
       sunriseMinute: settings.SETTING_MANUAL_SUNRISE_MINUTE,
       sunsetMinute: settings.SETTING_MANUAL_SUNSET_MINUTE
@@ -512,6 +521,14 @@ Pebble.addEventListener('webviewclosed', function (e) {
   }
 
   var locationChanged = getLocationKey(cachedSettings) !== getLocationKey(configData);
+  var manualSolarTurnedOff = usesManualSolar(cachedSettings) && !usesManualSolar(configData);
+
+  // The watch keeps the last times it was sent. If manual times were just
+  // turned off and none have been calculated yet, send the watch's defaults
+  // so the manual times don't linger until a location fix comes in.
+  if (manualSolarTurnedOff && !cachedSolar) {
+    cachedSolar = DEFAULT_SOLAR;
+  }
 
   // Save to localStorage for persistence
   localStorage.setItem('halcyonSettings', JSON.stringify(configData));
