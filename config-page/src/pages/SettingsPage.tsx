@@ -12,6 +12,7 @@ import {
   DonationLink,
   AltTimezoneSection,
   LocationSection,
+  SolarTimesSection,
 } from '../components';
 import { useSavedThemes } from '../hooks/useSavedThemes';
 import lightThemes from '../data/light-themes.json';
@@ -236,6 +237,8 @@ export const SettingsPage: React.FC = () => {
       )}
 
       <LocationSection />
+
+      <SolarTimesSection />
 
       {weatherWidgetSelected && (
         <Section title="Weather">

@@ -2,12 +2,15 @@ import React, { createContext, useContext, useMemo } from 'react';
 import { Settings, WatchInfo, Capabilities } from './types';
 import { evaluateCapabilities } from '../utils/capabilities';
 import { getDefaultSettings } from '../utils/defaultSettings';
+import { getManualSolarError } from '../utils/solarTimes';
 
 interface ConfigContextType {
   settings: Settings;
   updateSetting: (key: string, value: any) => void;
   resetToDefaults: () => void;
   save: () => void;
+  /** Problem that blocks saving, if any */
+  settingsError: string | null;
 }
 
 interface WatchInfoContextType {
@@ -71,7 +74,10 @@ export const PebbleConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setSettings(getDefaultSettings(capabilities));
   };
 
+  const settingsError = getManualSolarError(settings);
+
   const save = () => {
+    if (settingsError) return;
     const params = new URLSearchParams(window.location.search);
     const returnTo = params.get('return_to') || 'pebblejs://close#';
     window.location.href = returnTo + encodeURIComponent(JSON.stringify(settings));
@@ -79,7 +85,7 @@ export const PebbleConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   return (
     <WatchInfoContext.Provider value={{ watchInfo, capabilities }}>
-      <ConfigContext.Provider value={{ settings, updateSetting, resetToDefaults, save }}>
+      <ConfigContext.Provider value={{ settings, updateSetting, resetToDefaults, save, settingsError }}>
         {children}
       </ConfigContext.Provider>
     </WatchInfoContext.Provider>

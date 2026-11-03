@@ -185,6 +185,11 @@ button {
   background-color: var(--halite-orange-active);
 }
 
+.halite-save-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .halite-reset-button {
   background-color: transparent;
   color: var(--text-muted);
@@ -1224,4 +1229,15 @@ input[type='checkbox'] {
 
 .halite-icon-btn {
   padding: 8px;
+}
+
+.halite-time-input .halite-input {
+  width: auto;
+  min-width: 8rem;
+}
+
+.halite-error {
+  color: #e74c3c;
+  font-size: 0.9rem;
+  font-weight: 600;
 }

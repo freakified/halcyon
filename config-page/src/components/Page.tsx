@@ -3,7 +3,7 @@ import { useConfig } from '../context/PebbleConfigContext';
 import { ConfirmModal } from './ConfirmModal';
 
 export const Page: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => {
-  const { resetToDefaults, save } = useConfig();
+  const { resetToDefaults, save, settingsError } = useConfig();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const handleReset = () => {
@@ -16,7 +16,14 @@ export const Page: React.FC<{ title: string; children: React.ReactNode }> = ({ t
         <h1>{title}</h1>
         <div className="halite-header-actions">
           <button className="halite-reset-button" onClick={handleReset}>RESET</button>
-          <button className="halite-save-button" onClick={save}>SAVE</button>
+          <button
+            className="halite-save-button"
+            onClick={save}
+            disabled={!!settingsError}
+            title={settingsError ?? undefined}
+          >
+            SAVE
+          </button>
         </div>
       </header>
       <main className="halite-content">

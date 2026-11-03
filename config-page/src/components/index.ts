@@ -7,6 +7,8 @@ export * from './Select';
 export * from './TextInput';
 export * from './AltTimezoneSection';
 export * from './LocationSection';
+export * from './SolarTimesSection';
+export * from './TimeInput';
 export * from './ThemePicker';
 export * from './WidgetSelector';
 export * from './WatchPreview';
