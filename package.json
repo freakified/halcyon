@@ -7,7 +7,8 @@
   ],
   "private": true,
   "scripts": {
-    "check:i18n": "node scripts/check-languages.js"
+    "check:i18n": "node scripts/check-languages.js",
+    "test:weather-icons": "node scripts/test-weather-icons.js"
   },
   "pebble": {
     "displayName": "Halcyon",
@@ -75,6 +76,8 @@
       "SETTING_WIDGET_LOWER_SECONDARY",
       "WEATHER_SUNRISE_MINUTE",
       "WEATHER_SUNSET_MINUTE",
+      "WEATHER_ICON_CURRENT",
+      "WEATHER_ICON_DAY",
       "SETTING_TEMP_UNIT",
       "SETTING_LANGUAGE",
       "SETTING_ALT_CITY_LABEL",
@@ -93,6 +96,41 @@
           "menuIcon": true,
           "name": "MENU_ICON",
           "type": "bitmap"
+        },
+        {
+          "file": "images/weather/pebble/unknown.pdc",
+          "name": "WEATHER_ICON_UNKNOWN",
+          "type": "raw"
+        },
+        {
+          "file": "images/weather/pebble/clear.pdc",
+          "name": "WEATHER_ICON_CLEAR",
+          "type": "raw"
+        },
+        {
+          "file": "images/weather/pebble/partly-cloudy.pdc",
+          "name": "WEATHER_ICON_PARTLY_CLOUDY",
+          "type": "raw"
+        },
+        {
+          "file": "images/weather/pebble/cloudy.pdc",
+          "name": "WEATHER_ICON_CLOUDY",
+          "type": "raw"
+        },
+        {
+          "file": "images/weather/pebble/drizzle.pdc",
+          "name": "WEATHER_ICON_DRIZZLE",
+          "type": "raw"
+        },
+        {
+          "file": "images/weather/pebble/rain.pdc",
+          "name": "WEATHER_ICON_RAIN",
+          "type": "raw"
+        },
+        {
+          "file": "images/weather/pebble/snow.pdc",
+          "name": "WEATHER_ICON_SNOW",
+          "type": "raw"
         }
       ]
     }

@@ -1,6 +1,7 @@
 #include "messaging.h"
 #include "settings.h"
 #include "solarUtils.h"
+#include "weather_icon.h"
 #include <pebble.h>
 
 void (*message_processed_callback)(void);
@@ -103,6 +104,10 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
       dict_find(iterator, MESSAGE_KEY_WEATHER_SUNRISE_MINUTE);
   Tuple *weatherSunsetMinute_tuple =
       dict_find(iterator, MESSAGE_KEY_WEATHER_SUNSET_MINUTE);
+  Tuple *weatherIconCurrent_tuple =
+      dict_find(iterator, MESSAGE_KEY_WEATHER_ICON_CURRENT);
+  Tuple *weatherIconDay_tuple =
+      dict_find(iterator, MESSAGE_KEY_WEATHER_ICON_DAY);
   Tuple *tempUnit_tuple =
       dict_find(iterator, MESSAGE_KEY_SETTING_TEMP_UNIT);
   Tuple *language_tuple =
@@ -300,6 +305,15 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
   if (weatherSunsetMinute_tuple != NULL) {
     solarUtils_setSolarMinutes(currentSolarInfo.sunriseMinute,
                                (int)weatherSunsetMinute_tuple->value->int32);
+  }
+
+  if (weatherIconCurrent_tuple != NULL) {
+    weather_icon_set_current(
+        (WeatherIcon)weatherIconCurrent_tuple->value->int8);
+  }
+
+  if (weatherIconDay_tuple != NULL) {
+    weather_icon_set_day((WeatherIcon)weatherIconDay_tuple->value->int8);
   }
 
   if (tempUnit_tuple != NULL) {

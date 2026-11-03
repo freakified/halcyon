@@ -3,6 +3,30 @@ import { useCapabilities, useConfig } from '../context/PebbleConfigContext';
 import { Settings } from '../context/types';
 import { getPreviewForValue } from '../data/widgetTypes';
 
+const WeatherIconPreview: React.FC<{ background: string }> = ({ background }) => (
+    <svg
+        aria-label="Partly cloudy weather icon preview"
+        className="halite-weather-icon-preview"
+        viewBox="0 0 25 25"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        <path
+            d="M12.5 3.5 10.5 5.5v3l2 2h3l2-2v-3l-2-2Z"
+            fill={background}
+        />
+        <path d="M6.5.5l2 2M21.5.5l-2 2M20.5 7.5h3M4.5 7.5h3" />
+        <path
+            d="m21.5 23.5 2-2v-4l-2-2h-6l-3-3h-4l-3 3h-3l-2 2v4l2 2Z"
+            fill={background}
+        />
+        <path d="m5.5 15.5 3 3" />
+    </svg>
+);
+
 export interface WatchPreviewProps {
     overrideSettings?: Partial<Settings>;
     isNight?: boolean;
@@ -29,6 +53,27 @@ export const WatchPreview: React.FC<WatchPreviewProps> = ({ overrideSettings, is
     const color = (daySetting: keyof Settings, nightSetting: keyof Settings) => (
         getHex(!isNight ? String(effectiveSettings[daySetting]) : String(effectiveSettings[nightSetting]))
     );
+
+    const renderWidget = (value: string | undefined): React.ReactNode => {
+        if (value === '{weather_icon}' || value === '{weather_icon_day}') {
+            return (
+                <WeatherIconPreview
+                    background={getHex(
+                        isNight
+                            ? effectiveSettings.SETTING_NIGHT_BG_COLOR
+                            : effectiveSettings.SETTING_BG_COLOR,
+                    )}
+                />
+            );
+        }
+        return getPreviewForValue(
+            value,
+            Number(effectiveSettings.SETTING_LANGUAGE) || 0,
+            Number(effectiveSettings.SETTING_TEMP_UNIT) === 1,
+            altLabel,
+            altLabel2,
+        );
+    };
 
     return (
         <div className={`halite-watch-preview-container ${isRound ? 'round' : 'rect'}`}>
@@ -89,12 +134,12 @@ export const WatchPreview: React.FC<WatchPreviewProps> = ({ overrideSettings, is
                 <div className="halite-watch-preview-content">
                     {effectiveSettings.SETTING_WIDGET_UPPER_SECONDARY && (
                         <div className={`halite-watch-preview-widget ${secondaryWidgetFontClass} upper`} style={{ color: getHex(isNight ? effectiveSettings.SETTING_NIGHT_SUBTEXT_SECONDARY_COLOR : effectiveSettings.SETTING_SUBTEXT_SECONDARY_COLOR) }}>
-                            {getPreviewForValue(effectiveSettings.SETTING_WIDGET_UPPER_SECONDARY, Number(effectiveSettings.SETTING_LANGUAGE) || 0, Number(effectiveSettings.SETTING_TEMP_UNIT) === 1, altLabel, altLabel2)}
+                            {renderWidget(effectiveSettings.SETTING_WIDGET_UPPER_SECONDARY)}
                         </div>
                     )}
                     {effectiveSettings.SETTING_WIDGET_UPPER_PRIMARY && (
                         <div className="halite-watch-preview-widget primary upper" style={{ color: getHex(isNight ? effectiveSettings.SETTING_NIGHT_SUBTEXT_PRIMARY_COLOR : effectiveSettings.SETTING_SUBTEXT_PRIMARY_COLOR) }}>
-                            {getPreviewForValue(effectiveSettings.SETTING_WIDGET_UPPER_PRIMARY, Number(effectiveSettings.SETTING_LANGUAGE) || 0, Number(effectiveSettings.SETTING_TEMP_UNIT) === 1, altLabel, altLabel2)}
+                            {renderWidget(effectiveSettings.SETTING_WIDGET_UPPER_PRIMARY)}
                         </div>
                     )}
                     <div className="halite-watch-time" style={{ color: color('SETTING_TIME_COLOR', 'SETTING_NIGHT_TIME_COLOR') }}>
@@ -104,12 +149,12 @@ export const WatchPreview: React.FC<WatchPreviewProps> = ({ overrideSettings, is
                     </div>
                     {effectiveSettings.SETTING_WIDGET_LOWER_PRIMARY && (
                         <div className="halite-watch-preview-widget primary lower" style={{ color: getHex(!isNight ? effectiveSettings.SETTING_SUBTEXT_PRIMARY_COLOR : effectiveSettings.SETTING_NIGHT_SUBTEXT_PRIMARY_COLOR) }}>
-                            {getPreviewForValue(effectiveSettings.SETTING_WIDGET_LOWER_PRIMARY, Number(effectiveSettings.SETTING_LANGUAGE) || 0, Number(effectiveSettings.SETTING_TEMP_UNIT) === 1, altLabel, altLabel2)}
+                            {renderWidget(effectiveSettings.SETTING_WIDGET_LOWER_PRIMARY)}
                         </div>
                     )}
                     {effectiveSettings.SETTING_WIDGET_LOWER_SECONDARY && (
                         <div className={`halite-watch-preview-widget ${secondaryWidgetFontClass} lower`} style={{ color: getHex(!isNight ? effectiveSettings.SETTING_SUBTEXT_SECONDARY_COLOR : effectiveSettings.SETTING_NIGHT_SUBTEXT_SECONDARY_COLOR) }}>
-                            {getPreviewForValue(effectiveSettings.SETTING_WIDGET_LOWER_SECONDARY, Number(effectiveSettings.SETTING_LANGUAGE) || 0, Number(effectiveSettings.SETTING_TEMP_UNIT) === 1, altLabel, altLabel2)}
+                            {renderWidget(effectiveSettings.SETTING_WIDGET_LOWER_SECONDARY)}
                         </div>
                     )}
                 </div>
