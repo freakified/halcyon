@@ -27,6 +27,11 @@ const BATTERY = '{t:BATTERY} {batt}%';
 const UV_INDEX = '{t:UV} {uv}';
 const NEXT_SOLAR = '{next_solar}';
 const SUN_TIMES = '{sunrise} / {sunset}';
+const ALARM = '{alarm}';
+const ISO_DATE = '{year}-{month_num}-{day0}';
+const FORECAST = '{temp}° ({thi}°/{tlo}°)';
+const RAIN = '{t:RAIN} {pop}%';
+const WIND = '{wind} {wind_unit} {wind_dir}';
 
 const preset = (
   name: string,
@@ -58,42 +63,34 @@ export const getWidgetThemes = (capabilities: Capabilities): Theme[] => {
         defaults.SETTING_WIDGET_LOWER_SECONDARY,
       ),
       preset('Minimal', NONE, NONE, DATE, NONE),
-      preset('Sun Seeker', `${UV_INDEX} · {cond_day}`, NEXT_SOLAR, DATE, SUN_TIMES),
-      preset(
-        'Weather Station',
-        `${UV_INDEX} · {hum}%`,
-        '{temp}° {cond}',
-        DATE,
-        '{wind} {wind_unit} {wind_dir}',
-      ),
-      preset(
-        'Beach Day',
-        `{temp}° · ${UV_INDEX}`,
-        NEXT_SOLAR,
-        DATE,
-        '{t:RAIN} {pop}% · {wind} {wind_unit}',
-      ),
-      ...(capabilities.HEALTH
-        ? [
-            preset(
-              'Dashboard',
-              BATTERY,
-              '{steps} · {dist} {dist_unit}',
-              DATE,
-              capabilities.HRM ? `{hr} {t:BPM} · ${UV_INDEX}` : UV_INDEX,
-            ),
-          ]
+      preset('Forecast', RAIN, FORECAST, DATE, '{hum}% {t:HUMIDITY}'),
+      preset('Sun Chaser', UV_INDEX, DATE, NEXT_SOLAR, '{temp}° · {cond}'),
+      preset('Traveler', '{alt_tz2}', '{alt_tz}', DATE, BATTERY),
+      ...(capabilities.ALARMS
+        ? [preset('Bedside', NEXT_SOLAR, ALARM, DATE, BATTERY)]
         : []),
-      preset('Almanac', '{t:WEEK} {week_of_year} {t:DAY} {day_of_year}', SUN_TIMES, DATE, '{year}'),
-      preset(
-        'Jet Lag',
-        '{alt_tz2_label} {alt_tz2_time}',
-        '{alt_tz_label} {alt_tz_time} {alt_tz_day}',
-        DATE,
-        NEXT_SOLAR,
-      ),
-    ],
-    [],
-    [],
-  );
+      ...(capabilities.HEALTH
+        ? [preset('Fitness', '{dist} {dist_unit}', '{steps} {t:STEPS}', DATE,
+          capabilities.HRM ? '{hr} {t:BPM}' : BATTERY)]
+        : []),
+
+      // Tier 3
+      preset('Outdoors', NEXT_SOLAR, '{temp}° · {cond}', DATE, `${WIND} · ${RAIN}`),
+      preset('Storm Watch', `${WIND} · {hum}%`, '{cond}', DATE, `${RAIN} · {t:DPT} {dew}°`),
+      preset('Almanac', '{t:WEEK} {week_of_year}', SUN_TIMES, DATE, '{t:DAY} {day_of_year} · {year}'),
+      preset('Jet Lag', '{alt_tz2_label} {alt_tz2_time}',
+        '{alt_tz_label} {alt_tz_time} {alt_tz_day}', DATE, NEXT_SOLAR),
+      ...(capabilities.HEALTH
+        ? [preset('Dashboard', BATTERY, '{steps} · {dist} {dist_unit}', DATE,
+          capabilities.HRM ? '{hr} {t:BPM} · {temp}°' : '{temp}° · {cond}')]
+        : []),
+
+      // Tier 4
+      preset('Mission Control', '{alt_tz2_label} {alt_tz2_time}', ISO_DATE,
+        '{t:DAY} {day_of_year}', BATTERY),
+      preset('Golden Hour', '{cond_day}', NEXT_SOLAR, SUN_TIMES, DATE),
+      ...(capabilities.ALARMS
+        ? [preset('Early Bird', '{temp}° · {cond}', ALARM, NEXT_SOLAR, DATE)]
+        : []),
+    ], [], []);
 };

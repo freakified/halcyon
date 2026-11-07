@@ -15,7 +15,7 @@ export interface WidgetToken {
   token: string;
   label: string;
   category: string;
-  requires?: 'health' | 'hrm';
+  requires?: 'health' | 'hrm' | 'alarms';
 }
 
 export type WidgetTokenId = string;
@@ -93,7 +93,7 @@ export const WIDGET_TOKENS: WidgetToken[] = [
   { token: '{dist_unit}', label: 'Dist. Unit', category: 'Health & Device', requires: 'health' },
   { token: '{hr}', label: 'Heart Rate', category: 'Health & Device', requires: 'hrm' },
   { token: '{batt}', label: 'Battery', category: 'Health & Device' },
-  { token: '{alarm}', label: 'Next Alarm', category: 'Health & Device' },
+  { token: '{alarm}', label: 'Next Alarm', category: 'Health & Device', requires: 'alarms' },
   { token: '{temp}', label: 'Temp', category: 'Weather' },
   { token: '{thi}', label: 'High', category: 'Weather' },
   { token: '{tlo}', label: 'Low', category: 'Weather' },

@@ -21,6 +21,7 @@ const CAPABILITY_MAP: Record<keyof Capabilities, string[]> = {
   SMARTSTRAP_POWER: ['basalt', 'chalk'],
   HEALTH: ['basalt', 'chalk', 'diorite', 'emery', 'flint', 'gabbro'],
   HRM: ['diorite', 'emery'],
+  ALARMS: ['flint', 'emery', 'gabbro']
 };
 
 const getCapabilitiesForPlatform = (platform: string): Capabilities => {

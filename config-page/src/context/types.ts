@@ -29,6 +29,7 @@ export interface Capabilities {
   SMARTSTRAP_POWER: boolean;
   HEALTH: boolean;
   HRM: boolean;
+  ALARMS: boolean;
 }
 
 export interface Settings {
