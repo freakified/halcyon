@@ -121,12 +121,30 @@ export const getWidgetThemes = (capabilities: Capabilities): Theme[] => {
       lowerSecondary: RAIN,
     }),
     preset({
-      name: 'Fitness',
+      name: 'Marathon',
       requires: 'HRM',
-      upperSecondary: 'h',
-      upperPrimary: STEPS,
+      upperSecondary: `${UV_INDEX} ${RAIN}`,
+      upperPrimary: NUMERIC_DATE,
       lowerPrimary: HEART_RATE,
-      lowerSecondary: DISTANCE,
+      lowerSecondary: `${STEPS} ${DISTANCE}`,
+    }),
+    preset({
+      name: 'Storm Advisory',
+      upperSecondary: WIND,
+      upperPrimary: '{temp}° {cond}',
+      lowerPrimary: DATE,
+      lowerSecondary: RAIN,
+      large: {
+        upperSecondary: `${WIND} · {hum}%`,
+        lowerSecondary: `${RAIN} · ${DEW_POINT}`,
+      },
+    }),
+    preset({
+      name: 'Carpe Diem',
+      upperSecondary: WEEK_NUMBER,
+      upperPrimary: SUN_TIMES,
+      lowerPrimary: DATE,
+      lowerSecondary: `${DAY_NUMBER} · {year}`,
     }),
     preset({
       name: 'Outside',
@@ -143,84 +161,16 @@ export const getWidgetThemes = (capabilities: Capabilities): Theme[] => {
     }),
 
     // Tier 3
-    preset({
-      name: 'Outdoors',
-      upperSecondary: NEXT_SOLAR,
-      upperPrimary: '{temp}° · {cond}',
-      lowerPrimary: DATE,
-      lowerSecondary: WIND,
-      large: {
-        lowerSecondary: `{wind} {wind_unit}  ${RAIN}`,
-      },
-    }),
-    preset({
-      name: 'Storm Watch',
-      upperSecondary: WIND,
-      upperPrimary: CONDITION,
-      lowerPrimary: DATE,
-      lowerSecondary: RAIN,
-      large: {
-        upperSecondary: `${WIND} · {hum}%`,
-        lowerSecondary: `${RAIN} · ${DEW_POINT}`,
-      },
-    }),
-    preset({
-      name: 'Almanac',
-      upperSecondary: WEEK_NUMBER,
-      upperPrimary: SUN_TIMES,
-      lowerPrimary: DATE,
-      lowerSecondary: `${DAY_NUMBER} · {year}`,
-    }),
-    preset({
-      name: 'Jet Lag',
-      upperSecondary: '{alt_tz2_label} {alt_tz2_time}',
-      upperPrimary: '{alt_tz_label} {alt_tz_time} {alt_tz_day}',
-      lowerPrimary: DATE,
-      lowerSecondary: NEXT_SOLAR,
-      large: {
-        upperSecondary: '{alt_tz2_label} {alt_tz2_time} {alt_tz2_day}',
-      },
-    }),
-    preset({
-      name: 'Dashboard',
-      requires: 'HEALTH',
-      upperSecondary: BATTERY,
-      upperPrimary: '{steps} · {dist} {dist_unit}',
-      lowerPrimary: DATE,
-      lowerSecondary: capabilities.HRM ? `${HEART_RATE} · {temp}°` : '{temp}° · {cond}',
-      large: {
-        upperSecondary: `${BATTERY} · ${UV_INDEX}`,
-      },
-    }),
-
     // Tier 4
     preset({
-      name: 'Mission Control',
-      upperSecondary: '{alt_tz2_label} {alt_tz2_time}',
-      upperPrimary: NUMERIC_DATE,
-      lowerPrimary: DAY_NUMBER,
-      lowerSecondary: BATTERY,
-      large: {
-        lowerPrimary: `${WEEK_NUMBER} · ${DAY_NUMBER}`,
-      },
-    }),
-    preset({
-      name: 'Golden Hour',
+      name: 'Rise and Shine',
       upperSecondary: '{cond_day}',
-      upperPrimary: NEXT_SOLAR,
+      upperPrimary: STEPS,
       lowerPrimary: SUN_TIMES,
       lowerSecondary: DATE,
       large: {
         upperSecondary: `${UV_INDEX} · {cond_day}`,
       },
-    }),
-    preset({
-      name: 'Early Bird',
-      requires: 'ALARMS',
-      upperSecondary: '{temp}° · {cond}',
-      upperPrimary: ALARM,
-      lowerPrimary: NEXT_SOLAR,
-      lowerSecondary: DATE,
     }),
   ];
 
