@@ -46,19 +46,14 @@ export interface ThemeKind {
 }
 
 /**
- * Combines light, neutral and dark themes into a single list, ensuring the first
+ * Combines groups of themes into a single list, in order, ensuring the first
  * theme is marked as the default.
  *
- * @param primaryThemes The first group of themes (e.g. light themes for day mode)
- * @param neutralThemes The second group of themes (e.g. neutral themes)
- * @param secondaryThemes The third group of themes (e.g. dark themes for day mode)
+ * @param groups The groups of themes, in display order (e.g. light, neutral
+ *   and dark themes for day mode)
  */
-export const prepareThemes = (
-  primaryThemes: Theme[],
-  neutralThemes: Theme[],
-  secondaryThemes: Theme[],
-): Theme[] => {
-  const combined = [...primaryThemes, ...neutralThemes, ...secondaryThemes];
+export const prepareThemes = (...groups: Theme[][]): Theme[] => {
+  const combined = ([] as Theme[]).concat(...groups);
 
   return combined.map((theme, index) => {
     if (index === 0) {

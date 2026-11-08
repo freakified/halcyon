@@ -6,6 +6,7 @@
 import { Capabilities, Settings } from '../context/types';
 import { getDefaultSettings } from '../utils/defaultSettings';
 import { prepareThemes, Theme } from '../utils/themeUtils';
+import { isAvailable, WIDGETS } from './widgetTypes';
 
 /** The widget slots, in the order they appear on the watch, top to bottom */
 export const WIDGET_KEYS: (keyof Settings)[] = [
@@ -17,80 +18,206 @@ export const WIDGET_KEYS: (keyof Settings)[] = [
 
 // Most presets build widgets of their own out of tokens, the way the
 // widget selector's "Custom…" option does, so they show off what it can
-// do. Words come from {t:...} tokens rather than literal text, so every
+// do; the built-in widgets (data/widgetTypes.ts) are the building blocks.
+// Words come from {t:...} tokens rather than literal text, so every
 // preset reads right in every language. A slot holds 47 characters, and
 // the watch stores what's left after the phone fills in its own tokens
 // (weather, sun times, labels), so that has to fit too.
-const NONE = '';
-const DATE = '{local_date}';
-const BATTERY = '{t:BATTERY} {batt}%';
-const UV_INDEX = '{t:UV} {uv}';
-const NEXT_SOLAR = '{next_solar}';
+const {
+  NONE, DATE, ALT_TZ, ALT_TZ2, NUMERIC_DATE, DAY_NUMBER, WEEK_NUMBER, NEXT_SOLAR,
+  STEPS, DISTANCE, HEART_RATE, BATTERY, ALARM,
+  FORECAST, CONDITION, HUMIDITY, WIND, UV_INDEX, DEW_POINT, RAIN,
+} = WIDGETS;
 const SUN_TIMES = '{sunrise} / {sunset}';
-const ALARM = '{alarm}';
-const ISO_DATE = '{year}-{month_num}-{day0}';
-const FORECAST = '{temp}° ({thi}°/{tlo}°)';
-const RAIN = '{t:RAIN} {pop}%';
-const WIND = '{wind} {wind_unit} {wind_dir}';
 
-const preset = (
-  name: string,
-  upperSecondary: string,
-  upperPrimary: string,
-  lowerPrimary: string,
-  lowerSecondary: string,
-): Theme => ({
-  name,
-  settings: {
-    SETTING_WIDGET_UPPER_SECONDARY: upperSecondary,
-    SETTING_WIDGET_UPPER_PRIMARY: upperPrimary,
-    SETTING_WIDGET_LOWER_PRIMARY: lowerPrimary,
-    SETTING_WIDGET_LOWER_SECONDARY: lowerSecondary,
-  },
-});
+export interface WidgetSlots {
+  upperSecondary: string;
+  upperPrimary: string;
+  lowerPrimary: string;
+  lowerSecondary: string;
+}
+
+export type FormFactor = 'small-rect' | 'large-rect' | 'small-round' | 'large-round';
+export type WatchSize = FormFactor | 'small' | 'large' | 'rect' | 'round';
+export type WidgetOverrides = Partial<Record<WatchSize, Partial<WidgetSlots>>>;
+
+/** A preset: its name, its four slots, and any per-size overrides */
+export interface PresetDefinition extends WidgetSlots, WidgetOverrides {
+  name: string;
+  /** Only offer the preset on watches with this capability */
+  requires?: keyof Capabilities;
+}
+
+export const formFactor = (capabilities: Capabilities): FormFactor =>
+  capabilities.ROUND
+    ? capabilities.DISPLAY_260x260_ROUND ? 'large-round' : 'small-round'
+    : capabilities.DISPLAY_200x228 ? 'large-rect' : 'small-rect';
 
 /** The widget preset list for this watch, default first */
 export const getWidgetThemes = (capabilities: Capabilities): Theme[] => {
   const defaults = getDefaultSettings(capabilities);
+  const isLarge = capabilities.DISPLAY_200x228 || capabilities.DISPLAY_260x260_ROUND;
+  const matchingSizes: WatchSize[] = [
+    isLarge ? 'large' : 'small',
+    capabilities.ROUND ? 'round' : 'rect',
+    formFactor(capabilities),
+  ];
 
-  return prepareThemes(
-    [
-      preset(
-        'Classic',
-        defaults.SETTING_WIDGET_UPPER_SECONDARY,
-        defaults.SETTING_WIDGET_UPPER_PRIMARY,
-        defaults.SETTING_WIDGET_LOWER_PRIMARY,
-        defaults.SETTING_WIDGET_LOWER_SECONDARY,
-      ),
-      preset('Minimal', NONE, NONE, DATE, NONE),
-      preset('Forecast', RAIN, FORECAST, DATE, '{hum}% {t:HUMIDITY}'),
-      preset('Sun Chaser', UV_INDEX, DATE, NEXT_SOLAR, '{temp}° · {cond}'),
-      preset('Traveler', '{alt_tz2}', '{alt_tz}', DATE, BATTERY),
-      ...(capabilities.ALARMS
-        ? [preset('Bedside', NEXT_SOLAR, ALARM, DATE, BATTERY)]
-        : []),
-      ...(capabilities.HEALTH
-        ? [preset('Fitness', '{dist} {dist_unit}', '{steps} {t:STEPS}', DATE,
-          capabilities.HRM ? '{hr} {t:BPM}' : BATTERY)]
-        : []),
+  const preset = ({
+    name,
+    requires,
+    upperSecondary,
+    upperPrimary,
+    lowerPrimary,
+    lowerSecondary,
+    ...overrides
+  }: PresetDefinition): Theme | null => {
+    if (!isAvailable({ requires }, capabilities)) return null;
 
-      // Tier 3
-      preset('Outdoors', NEXT_SOLAR, '{temp}° · {cond}', DATE, `${WIND} · ${RAIN}`),
-      preset('Storm Watch', `${WIND} · {hum}%`, '{cond}', DATE, `${RAIN} · {t:DPT} {dew}°`),
-      preset('Almanac', '{t:WEEK} {week_of_year}', SUN_TIMES, DATE, '{t:DAY} {day_of_year} · {year}'),
-      preset('Jet Lag', '{alt_tz2_label} {alt_tz2_time}',
-        '{alt_tz_label} {alt_tz_time} {alt_tz_day}', DATE, NEXT_SOLAR),
-      ...(capabilities.HEALTH
-        ? [preset('Dashboard', BATTERY, '{steps} · {dist} {dist_unit}', DATE,
-          capabilities.HRM ? '{hr} {t:BPM} · {temp}°' : '{temp}° · {cond}')]
-        : []),
+    const slots: WidgetSlots = Object.assign(
+      { upperSecondary, upperPrimary, lowerPrimary, lowerSecondary },
+      ...matchingSizes.map((size) => overrides[size]),
+    );
 
-      // Tier 4
-      preset('Mission Control', '{alt_tz2_label} {alt_tz2_time}', ISO_DATE,
-        '{t:DAY} {day_of_year}', BATTERY),
-      preset('Golden Hour', '{cond_day}', NEXT_SOLAR, SUN_TIMES, DATE),
-      ...(capabilities.ALARMS
-        ? [preset('Early Bird', '{temp}° · {cond}', ALARM, NEXT_SOLAR, DATE)]
-        : []),
-    ], [], []);
+    return {
+      name,
+      settings: {
+        SETTING_WIDGET_UPPER_SECONDARY: slots.upperSecondary,
+        SETTING_WIDGET_UPPER_PRIMARY: slots.upperPrimary,
+        SETTING_WIDGET_LOWER_PRIMARY: slots.lowerPrimary,
+        SETTING_WIDGET_LOWER_SECONDARY: slots.lowerSecondary,
+      },
+    };
+  };
+
+  const presets = [
+    preset({
+      name: 'Default',
+      upperSecondary: defaults.SETTING_WIDGET_UPPER_SECONDARY,
+      upperPrimary: defaults.SETTING_WIDGET_UPPER_PRIMARY,
+      lowerPrimary: defaults.SETTING_WIDGET_LOWER_PRIMARY,
+      lowerSecondary: defaults.SETTING_WIDGET_LOWER_SECONDARY,
+    }),
+    preset({
+      name: 'Minimal',
+      upperSecondary: NONE,
+      upperPrimary: NONE,
+      lowerPrimary: DATE,
+      lowerSecondary: NONE,
+    }),
+    preset({
+      name: 'Outside',
+      upperSecondary: `${RAIN} ({thi}°/{tlo}°)`,
+      upperPrimary: '{temp}° {cond}',
+      lowerPrimary: NUMERIC_DATE,
+      lowerSecondary: `${NEXT_SOLAR} · ${UV_INDEX}`,
+    }),
+    preset({
+      name: 'World Traveler',
+      upperSecondary: ALT_TZ,
+      upperPrimary: ALT_TZ2,
+      lowerPrimary: NUMERIC_DATE,
+      lowerSecondary: BATTERY,
+    }),
+    preset({
+      name: 'Workday',
+      requires: 'ALARMS',
+      upperSecondary: `{batt}% · {alarm}`,
+      upperPrimary: DATE,
+      lowerPrimary: FORECAST,
+      lowerSecondary: RAIN,
+    }),
+    preset({
+      name: 'Fitness',
+      requires: 'HRM',
+      upperSecondary: 'h',
+      upperPrimary: STEPS,
+      lowerPrimary: HEART_RATE,
+      lowerSecondary: DISTANCE,
+    }),
+
+    // Tier 3
+    preset({
+      name: 'Outdoors',
+      upperSecondary: NEXT_SOLAR,
+      upperPrimary: '{temp}° · {cond}',
+      lowerPrimary: DATE,
+      lowerSecondary: WIND,
+      large: {
+        lowerSecondary: `{wind} {wind_unit}  ${RAIN}`,
+      },
+    }),
+    preset({
+      name: 'Storm Watch',
+      upperSecondary: WIND,
+      upperPrimary: CONDITION,
+      lowerPrimary: DATE,
+      lowerSecondary: RAIN,
+      large: {
+        upperSecondary: `${WIND} · {hum}%`,
+        lowerSecondary: `${RAIN} · ${DEW_POINT}`,
+      },
+    }),
+    preset({
+      name: 'Almanac',
+      upperSecondary: WEEK_NUMBER,
+      upperPrimary: SUN_TIMES,
+      lowerPrimary: DATE,
+      lowerSecondary: `${DAY_NUMBER} · {year}`,
+    }),
+    preset({
+      name: 'Jet Lag',
+      upperSecondary: '{alt_tz2_label} {alt_tz2_time}',
+      upperPrimary: '{alt_tz_label} {alt_tz_time} {alt_tz_day}',
+      lowerPrimary: DATE,
+      lowerSecondary: NEXT_SOLAR,
+      large: {
+        upperSecondary: '{alt_tz2_label} {alt_tz2_time} {alt_tz2_day}',
+      },
+    }),
+    preset({
+      name: 'Dashboard',
+      requires: 'HEALTH',
+      upperSecondary: BATTERY,
+      upperPrimary: '{steps} · {dist} {dist_unit}',
+      lowerPrimary: DATE,
+      lowerSecondary: capabilities.HRM ? `${HEART_RATE} · {temp}°` : '{temp}° · {cond}',
+      large: {
+        upperSecondary: `${BATTERY} · ${UV_INDEX}`,
+      },
+    }),
+
+    // Tier 4
+    preset({
+      name: 'Mission Control',
+      upperSecondary: '{alt_tz2_label} {alt_tz2_time}',
+      upperPrimary: NUMERIC_DATE,
+      lowerPrimary: DAY_NUMBER,
+      lowerSecondary: BATTERY,
+      large: {
+        lowerPrimary: `${WEEK_NUMBER} · ${DAY_NUMBER}`,
+      },
+    }),
+    preset({
+      name: 'Golden Hour',
+      upperSecondary: '{cond_day}',
+      upperPrimary: NEXT_SOLAR,
+      lowerPrimary: SUN_TIMES,
+      lowerSecondary: DATE,
+      large: {
+        upperSecondary: `${UV_INDEX} · {cond_day}`,
+      },
+    }),
+    preset({
+      name: 'Early Bird',
+      requires: 'ALARMS',
+      upperSecondary: '{temp}° · {cond}',
+      upperPrimary: ALARM,
+      lowerPrimary: NEXT_SOLAR,
+      lowerSecondary: DATE,
+    }),
+  ];
+
+  // drop the presets this watch can't show
+  return prepareThemes(presets.filter((theme): theme is Theme => theme !== null));
 };

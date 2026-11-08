@@ -1,4 +1,5 @@
 import { Settings, Capabilities } from '../context/types';
+import { WIDGETS } from '../data/widgetTypes';
 
 export const getDefaultSettings = (capabilities: Capabilities): Settings => ({
   SETTING_THEME: '0',
@@ -38,10 +39,10 @@ export const getDefaultSettings = (capabilities: Capabilities): Settings => ({
   SETTING_STATUS_BAR_ENABLED: 1,
   SETTING_STATUS_SHOW_CONNECTION: 0,
   // Widget slots default to format strings
-  SETTING_WIDGET_UPPER_SECONDARY: '{temp}° ({thi}°/{tlo}°)',
-  SETTING_WIDGET_UPPER_PRIMARY: '{cond}',
-  SETTING_WIDGET_LOWER_PRIMARY: '{local_date}',
-  SETTING_WIDGET_LOWER_SECONDARY: capabilities.HEALTH ? '{steps} {t:STEPS}' : '{t:BATTERY} {batt}%',
+  SETTING_WIDGET_UPPER_SECONDARY: WIDGETS.FORECAST,
+  SETTING_WIDGET_UPPER_PRIMARY: WIDGETS.CONDITION,
+  SETTING_WIDGET_LOWER_PRIMARY: WIDGETS.DATE,
+  SETTING_WIDGET_LOWER_SECONDARY: capabilities.HEALTH ? WIDGETS.STEPS : WIDGETS.BATTERY,
   SETTING_TEMP_UNIT: 0,
   SETTING_LANGUAGE: 0,
   // matches the watch's own defaults (src/c/settings.c)

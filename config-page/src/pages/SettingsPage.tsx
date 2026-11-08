@@ -299,8 +299,7 @@ export const SettingsPage: React.FC = () => {
 
       <Section title="General">
         <Select
-          label="Language (Experimental)"
-          description="Controls the language displayed on the watchface"
+          label="Language"
           messageKey="SETTING_LANGUAGE"
           options={[
             { label: 'English (US)', value: 0 },
