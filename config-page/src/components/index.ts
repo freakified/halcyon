@@ -14,3 +14,4 @@ export * from './CustomThemePanel';
 export * from './ImportThemeModal';
 export * from './ConfirmModal';
 export * from './DonationLink';
+export * from './Icon';

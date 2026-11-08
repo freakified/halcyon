@@ -105,49 +105,42 @@ export const getWidgetThemes = (capabilities: Capabilities): Theme[] => {
       lowerPrimary: DATE,
       lowerSecondary: NONE,
     }),
+    // preset({
+    //   name: 'World Traveler',
+    //   upperSecondary: ALT_TZ,
+    //   upperPrimary: ALT_TZ2,
+    //   lowerPrimary: NUMERIC_DATE,
+    //   lowerSecondary: BATTERY,
+    // }),
+    // preset({
+    //   name: 'Workday',
+    //   requires: 'ALARMS',
+    //   upperSecondary: `{batt}% · {alarm}`,
+    //   upperPrimary: DATE,
+    //   lowerPrimary: FORECAST,
+    //   lowerSecondary: RAIN,
+    // }),
+    // preset({
+    //   name: 'Marathon',
+    //   requires: 'HRM',
+    //   upperSecondary: `${UV_INDEX} ${RAIN}`,
+    //   upperPrimary: NUMERIC_DATE,
+    //   lowerPrimary: HEART_RATE,
+    //   lowerSecondary: `${STEPS} ${DISTANCE}`,
+    // }),
+    // preset({
+    //   name: 'Storm Advisory',
+    //   upperSecondary: WIND,
+    //   upperPrimary: '{temp}° {cond}',
+    //   lowerPrimary: DATE,
+    //   lowerSecondary: RAIN,
+    //   large: {
+    //     upperSecondary: `${WIND} · {hum}%`,
+    //     lowerSecondary: `${RAIN} · ${DEW_POINT}`,
+    //   },
+    // }),
     preset({
-      name: 'World Traveler',
-      upperSecondary: ALT_TZ,
-      upperPrimary: ALT_TZ2,
-      lowerPrimary: NUMERIC_DATE,
-      lowerSecondary: BATTERY,
-    }),
-    preset({
-      name: 'Workday',
-      requires: 'ALARMS',
-      upperSecondary: `{batt}% · {alarm}`,
-      upperPrimary: DATE,
-      lowerPrimary: FORECAST,
-      lowerSecondary: RAIN,
-    }),
-    preset({
-      name: 'Marathon',
-      requires: 'HRM',
-      upperSecondary: `${UV_INDEX} ${RAIN}`,
-      upperPrimary: NUMERIC_DATE,
-      lowerPrimary: HEART_RATE,
-      lowerSecondary: `${STEPS} ${DISTANCE}`,
-    }),
-    preset({
-      name: 'Storm Advisory',
-      upperSecondary: WIND,
-      upperPrimary: '{temp}° {cond}',
-      lowerPrimary: DATE,
-      lowerSecondary: RAIN,
-      large: {
-        upperSecondary: `${WIND} · {hum}%`,
-        lowerSecondary: `${RAIN} · ${DEW_POINT}`,
-      },
-    }),
-    preset({
-      name: 'Carpe Diem',
-      upperSecondary: WEEK_NUMBER,
-      upperPrimary: SUN_TIMES,
-      lowerPrimary: DATE,
-      lowerSecondary: `${DAY_NUMBER} · {year}`,
-    }),
-    preset({
-      name: 'Outside',
+      name: 'Lots o\' weather',
       upperPrimary: `{thi}°/{tlo} ${RAIN}`,
       upperSecondary: '{temp}° {cond}',
       lowerSecondary: NUMERIC_DATE,
@@ -159,18 +152,12 @@ export const getWidgetThemes = (capabilities: Capabilities): Theme[] => {
         lowerPrimary: `${NEXT_SOLAR} · ${UV_INDEX}`,
       },
     }),
-
-    // Tier 3
-    // Tier 4
     preset({
-      name: 'Rise and Shine',
-      upperSecondary: '{cond_day}',
-      upperPrimary: STEPS,
-      lowerPrimary: SUN_TIMES,
-      lowerSecondary: DATE,
-      large: {
-        upperSecondary: `${UV_INDEX} · {cond_day}`,
-      },
+      name: 'Today\'s the day',
+      upperSecondary: WEEK_NUMBER,
+      upperPrimary: SUN_TIMES,
+      lowerPrimary: DATE,
+      lowerSecondary: `${DAY_NUMBER} · {year}`,
     }),
   ];
 

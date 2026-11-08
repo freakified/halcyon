@@ -12,6 +12,8 @@ import {
   DonationLink,
   AltTimezoneSection,
   LocationSection,
+  Icon,
+  ICONS,
 } from '../components';
 import { useSavedThemes } from '../hooks/useSavedThemes';
 import customWidgetsIconUrl from '../assets/custom-widgets-icon.svg';
@@ -36,20 +38,14 @@ export const SettingsPage: React.FC = () => {
   const alt2WidgetSelected = containsWidgets(widgetValues, ALT_TIMEZONE2_WIDGET_IDS);
   const weatherWidgetSelected = containsWidgets(widgetValues, WEATHER_WIDGET_IDS);
 
-  const activeThemes = React.useMemo(
-    () => DAY_COLOR_THEMES.presets(capabilities),
-    [capabilities],
-  );
+  const activeThemes = React.useMemo(() => DAY_COLOR_THEMES.presets(capabilities), [capabilities]);
 
   const activeNightThemes = React.useMemo(
     () => NIGHT_COLOR_THEMES.presets(capabilities),
     [capabilities],
   );
 
-  const widgetThemes = React.useMemo(
-    () => WIDGET_THEMES.presets(capabilities),
-    [capabilities],
-  );
+  const widgetThemes = React.useMemo(() => WIDGET_THEMES.presets(capabilities), [capabilities]);
 
   const daySavedThemes = useSavedThemes(DAY_COLOR_THEMES);
   const nightSavedThemes = useSavedThemes(NIGHT_COLOR_THEMES);
@@ -234,6 +230,15 @@ export const SettingsPage: React.FC = () => {
         />
         {/* the panel above already previews the live widgets */}
         {settings.SETTING_WIDGET_THEME === 'custom' && <WidgetSelector showPreview={false} />}
+        <div className="halite-info-text">
+          <span className="halite-info-icon" aria-hidden="true">
+            <Icon path={ICONS.INFO} />
+          </span>
+          <div className="halite-info-content">
+            Widget themes are still a work in progress! If you can think of a good one, please send
+            it along via the <strong>contact developer</strong> option in the Pebble app!
+          </div>
+        </div>
       </Section>
 
       {altWidgetSelected && (
