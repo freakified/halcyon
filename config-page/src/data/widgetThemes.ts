@@ -106,13 +106,6 @@ export const getWidgetThemes = (capabilities: Capabilities): Theme[] => {
       lowerSecondary: NONE,
     }),
     preset({
-      name: 'Outside',
-      upperSecondary: `${RAIN} ({thi}°/{tlo}°)`,
-      upperPrimary: '{temp}° {cond}',
-      lowerPrimary: NUMERIC_DATE,
-      lowerSecondary: `${NEXT_SOLAR} · ${UV_INDEX}`,
-    }),
-    preset({
       name: 'World Traveler',
       upperSecondary: ALT_TZ,
       upperPrimary: ALT_TZ2,
@@ -134,6 +127,19 @@ export const getWidgetThemes = (capabilities: Capabilities): Theme[] => {
       upperPrimary: STEPS,
       lowerPrimary: HEART_RATE,
       lowerSecondary: DISTANCE,
+    }),
+    preset({
+      name: 'Outside',
+      upperPrimary: `{thi}°/{tlo} ${RAIN}`,
+      upperSecondary: '{temp}° {cond}',
+      lowerSecondary: NUMERIC_DATE,
+      lowerPrimary: `${NEXT_SOLAR} · ${UV_INDEX}`,
+      round: {
+        upperPrimary: `{thi}°/{tlo} ${RAIN}`,
+        upperSecondary: '{temp}° {cond}',
+        lowerSecondary: NUMERIC_DATE,
+        lowerPrimary: `${NEXT_SOLAR} · ${UV_INDEX}`,
+      },
     }),
 
     // Tier 3

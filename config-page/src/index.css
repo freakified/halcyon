@@ -634,8 +634,26 @@ input[type='checkbox'] {
   font-weight: bold;
 }
 
-.halite-watch-preview-widget.primary {
-  font-size: 14px;
+.halite-watch-preview-widget.primary,
+.halite-watch-face.large-fonts .halite-watch-preview-widget {
+  font-size: 13px;
+}
+
+.halite-watch-face.large-fonts .halite-watch-preview-widget.primary {
+  font-size: 15px;
+}
+
+.halite-watch-face.large .halite-watch-preview-widget {
+  font-size: 8.5px;
+}
+
+.halite-watch-face.large .halite-watch-preview-widget.primary,
+.halite-watch-face.large.large-fonts .halite-watch-preview-widget {
+  font-size: 11px;
+}
+
+.halite-watch-face.large.large-fonts .halite-watch-preview-widget.primary {
+  font-size: 13.5px;
 }
 
 .halite-watch-time {
