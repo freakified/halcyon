@@ -88,12 +88,48 @@ static void update_icon_color(GColor color) {
   recolor_icon(disconnectedIcon, iconColor);
 }
 
-// black or white, whichever reads better on the given background. Channels
-// are 2 bits (0-3), weighted by perceived brightness; the threshold sits at
-// mid-gray.
-static GColor contrasting_color(GColor bg) {
-  int brightness = bg.r * 299 + bg.g * 587 + bg.b * 114;
-  return (brightness > 1500) ? GColorBlack : GColorWhite;
+/*
+ * Luminances are RLCD relative luminance scaled by 10000: Pebble's four
+ * 2-bit channel levels follow a 1.6 gamma curve, and its reflective filters
+ * have broader blue/red passbands than sRGB (0.25 R + 0.61 G + 0.14 B).
+ */
+static const uint32_t s_linearChannel[4] = {0, 1724, 5227, 10000};
+
+// white text/icon wins when its contrast ratio, times this bias (in tenths), is
+// at least black's: the screen renders mid-tones darker than sRGB would suggest,
+// especially saturated colors where at least one subpixel is closed
+#define WHITE_TEXT_BIAS_TENTHS 30
+#define PASTEL_WHITE_TEXT_BIAS_TENTHS 13
+
+static uint32_t luminance(GColor color) {
+  return (2500 * s_linearChannel[color.r] + 6100 * s_linearChannel[color.g] +
+          1400 * s_linearChannel[color.b]) /
+         10000;
+}
+
+// a contrast ratio as a fraction: (lighter + 0.05) / (darker + 0.05)
+typedef struct {
+  uint32_t num;
+  uint32_t den;
+} Contrast;
+
+static Contrast contrast(GColor a, GColor b) {
+  uint32_t la = luminance(a), lb = luminance(b);
+  return la > lb ? (Contrast){la + 500, lb + 500}
+                 : (Contrast){lb + 500, la + 500};
+}
+
+// black or white, whichever reads best on the background (biased to white)
+static GColor contrasting_color(GColor background) {
+  Contrast white = contrast(background, GColorWhite);
+  Contrast black = contrast(background, GColorBlack);
+  uint32_t bias = (background.r && background.g && background.b)
+                      ? PASTEL_WHITE_TEXT_BIAS_TENTHS
+                      : WHITE_TEXT_BIAS_TENTHS;
+  return (uint64_t)white.num * black.den * bias >=
+                 (uint64_t)black.num * white.den * 10
+             ? GColorWhite
+             : GColorBlack;
 }
 
 #define NOON_MINUTE (12 * 60)
