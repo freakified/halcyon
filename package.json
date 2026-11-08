@@ -1,7 +1,7 @@
 {
   "name": "halcyon-pebble",
   "author": "Freakified",
-  "version": "2.5.3",
+  "version": "2.5.4",
   "keywords": [
     "pebble-watchface"
   ],
@@ -113,7 +113,19 @@
           "type": "bitmap"
         }
       ]
-    }
+    },
+    "usesPermissions": [
+      "Location",
+      {
+        "name": "Internet",
+        "parameters": {
+          "domains": [
+            "api.open-meteo.com",
+            "halcyon.freakified.net"
+          ]
+        }
+      }
+    ]
   },
   "dependencies": {}
 }
