@@ -20,6 +20,21 @@
 // the icon centers vertically in the ring band
 #define STATUS_BAR_HEIGHT RING_THICKNESS
 
+// Set to 1 to enable tap-to-cycle mock status icons for audit screenshots
+#define MOCK_STATUS_FOR_SCREENSHOTS 0
+
+#if MOCK_STATUS_FOR_SCREENSHOTS
+// 0 = connected, 1 = quiet time (dnd), 2 = disconnected
+static int s_mock_status_state = 0;
+
+static void debug_tap_handler(AccelAxisType axis, int32_t direction) {
+  s_mock_status_state = (s_mock_status_state + 1) % 3;
+  APP_LOG(APP_LOG_LEVEL_INFO, "MOCK_STATUS: state changed to %d",
+          s_mock_status_state);
+  StatusBar_redraw();
+}
+#endif
+
 static Layer *statusBarLayer;
 
 static GBitmap *dndIcon;
@@ -127,6 +142,15 @@ static void status_bar_update(Layer *layer, GContext *ctx) {
 
   GBitmap *statusIcon = NULL;
 
+#if MOCK_STATUS_FOR_SCREENSHOTS
+  if (s_mock_status_state == 0) {
+    statusIcon = connectedIcon;
+  } else if (s_mock_status_state == 1) {
+    statusIcon = dndIcon;
+  } else {
+    statusIcon = disconnectedIcon;
+  }
+#else
   if (!bluetooth_connection_service_peek()) {
     statusIcon = disconnectedIcon;
   } else if (quiet_time_is_active()) {
@@ -134,6 +158,7 @@ static void status_bar_update(Layer *layer, GContext *ctx) {
   } else if (globalSettings.statusShowConnection) {
     statusIcon = connectedIcon;
   }
+#endif
 
   if (statusIcon == NULL) {
     return;
@@ -146,11 +171,8 @@ static void status_bar_update(Layer *layer, GContext *ctx) {
       contrasting_color(ring_color_at_noon(&theme, bounds.size.w)));
 
   GSize size = gbitmap_get_bounds(statusIcon).size;
-  // nudged down a pixel on rect so it sits visually centered in the band
-  GRect iconRect =
-      GRect((bounds.size.w - size.w) / 2,
-            (bounds.size.h - size.h) / 2 + PBL_IF_ROUND_ELSE(0, 1), size.w,
-            size.h);
+  GRect iconRect = GRect((bounds.size.w - size.w) / 2,
+                         (bounds.size.h - size.h) / 2, size.w, size.h);
 
   graphics_context_set_compositing_mode(ctx, GCompOpSet);
   graphics_draw_bitmap_in_rect(ctx, statusIcon, iconRect);
@@ -165,14 +187,21 @@ void StatusBar_init(Layer *parent) {
       gbitmap_create_with_resource(RESOURCE_ID_STATUS_DISCONNECTED);
   iconColor = GColorClear; // fresh bitmaps; force the first recolor
 
-  statusBarLayer =
-      layer_create(GRect(0, 0, bounds.size.w, STATUS_BAR_HEIGHT));
+  statusBarLayer = layer_create(GRect(0, 0, bounds.size.w, STATUS_BAR_HEIGHT));
   layer_set_update_proc(statusBarLayer, status_bar_update);
   layer_add_child(parent, statusBarLayer);
+#if MOCK_STATUS_FOR_SCREENSHOTS
+  accel_tap_service_subscribe(debug_tap_handler);
+  layer_set_hidden(statusBarLayer, false);
+#else
   layer_set_hidden(statusBarLayer, !globalSettings.enableStatusBar);
+#endif
 }
 
 void StatusBar_deinit(void) {
+#if MOCK_STATUS_FOR_SCREENSHOTS
+  accel_tap_service_unsubscribe();
+#endif
   layer_destroy(statusBarLayer);
 
   gbitmap_destroy(dndIcon);
@@ -181,6 +210,10 @@ void StatusBar_deinit(void) {
 }
 
 void StatusBar_redraw(void) {
+#if MOCK_STATUS_FOR_SCREENSHOTS
+  layer_set_hidden(statusBarLayer, false);
+#else
   layer_set_hidden(statusBarLayer, !globalSettings.enableStatusBar);
+#endif
   layer_mark_dirty(statusBarLayer);
 }
