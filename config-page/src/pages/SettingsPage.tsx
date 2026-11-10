@@ -37,6 +37,7 @@ export const SettingsPage: React.FC = () => {
   const altWidgetSelected = containsWidgets(widgetValues, ALT_TIMEZONE_WIDGET_IDS);
   const alt2WidgetSelected = containsWidgets(widgetValues, ALT_TIMEZONE2_WIDGET_IDS);
   const weatherWidgetSelected = containsWidgets(widgetValues, WEATHER_WIDGET_IDS);
+  const alarmShown = capabilities.ALARMS && settings.SETTING_SHOW_NEXT_ALARM === 1;
 
   const activeThemes = React.useMemo(() => DAY_COLOR_THEMES.presets(capabilities), [capabilities]);
 
@@ -119,6 +120,9 @@ export const SettingsPage: React.FC = () => {
               bwAllowGrey={false}
             />
             <ColorPicker label="Sun fill color" messageKey="SETTING_SUN_FILL_COLOR" />
+            {alarmShown && (
+              <ColorPicker label="Alarm marker color" messageKey="SETTING_ALARM_COLOR" />
+            )}
           </>
         )}
       </Section>
@@ -204,6 +208,9 @@ export const SettingsPage: React.FC = () => {
                   bwAllowGrey={false}
                 />
                 <ColorPicker label="Sun fill color" messageKey="SETTING_NIGHT_SUN_FILL_COLOR" />
+                {alarmShown && (
+                  <ColorPicker label="Alarm marker color" messageKey="SETTING_NIGHT_ALARM_COLOR" />
+                )}
               </>
             )}
           </>
@@ -361,6 +368,13 @@ export const SettingsPage: React.FC = () => {
             { label: 'None', value: 2 },
           ]}
         />
+        {capabilities.ALARMS && (
+          <Toggle
+            label="Show next alarm"
+            description="Marks your next alarm on the ring when it's within 24 hours"
+            messageKey="SETTING_SHOW_NEXT_ALARM"
+          />
+        )}
       </Section>
       <DonationLink />
     </Page>

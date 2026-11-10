@@ -2,6 +2,7 @@
 
 // #define FORCE_BACKLIGHT
 
+#include "alarmUtils.h"
 #include "drawUtils.h"
 #include "messaging.h"
 #include "settings.h"
@@ -289,6 +290,10 @@ static void update_clock() {
       currentSolarInfo.sunsetMinute == DEFAULT_SUNSET_TIME) {
     solarUtils_recalculateSolarData();
   }
+
+  // check for a new next alarm here rather than in the ring's update proc, so
+  // redraws (e.g. obstruction animations) don't keep asking the system
+  alarmUtils_update();
 
   // redraw solar ring layer
   layer_mark_dirty(ringLayer);

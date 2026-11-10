@@ -18,6 +18,7 @@ export const getDefaultSettings = (capabilities: Capabilities): Settings => ({
   SETTING_RING_SUNSET_COLOR: capabilities.BW ? 'AAAAAA' : 'FFAA00',
   SETTING_SUN_STROKE_COLOR: '000000',
   SETTING_SUN_FILL_COLOR: capabilities.BW ? 'FFFFFF' : 'FFFF00',
+  SETTING_ALARM_COLOR: capabilities.BW ? 'AAAAAA' : 'FF5555',
   SETTING_NIGHT_TIME_COLOR: 'FFFFFF',
   SETTING_NIGHT_SUBTEXT_PRIMARY_COLOR: 'FFFFFF',
   SETTING_NIGHT_SUBTEXT_SECONDARY_COLOR: capabilities.BW ? 'FFFFFF' : 'AAAAFF',
@@ -31,6 +32,7 @@ export const getDefaultSettings = (capabilities: Capabilities): Settings => ({
   SETTING_NIGHT_RING_SUNSET_COLOR: capabilities.BW ? 'AAAAAA' : '0055FF',
   SETTING_NIGHT_SUN_STROKE_COLOR: '000000',
   SETTING_NIGHT_SUN_FILL_COLOR: capabilities.BW ? 'FFFFFF' : 'FFFFFF',
+  SETTING_NIGHT_ALARM_COLOR: capabilities.BW ? 'AAAAAA' : 'FF5555',
   SETTING_USE_LARGE_FONTS: 0,
   SETTING_USE_PRIMARY_WIDGET_FONT: 0,
   SETTING_USE_NIGHT_THEME: 1,
@@ -38,6 +40,7 @@ export const getDefaultSettings = (capabilities: Capabilities): Settings => ({
   SETTING_SHOW_LEADING_ZERO: 0,
   SETTING_STATUS_BAR_ENABLED: 1,
   SETTING_STATUS_SHOW_CONNECTION: 0,
+  SETTING_SHOW_NEXT_ALARM: 1,
   // Widget slots default to format strings
   SETTING_WIDGET_UPPER_SECONDARY: WIDGETS.FORECAST,
   SETTING_WIDGET_UPPER_PRIMARY: WIDGETS.CONDITION,

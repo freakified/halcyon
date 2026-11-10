@@ -24,6 +24,7 @@
 #define DEFAULT_RING_SUNSET_COLOR GColorChromeYellow
 #define DEFAULT_SUN_STROKE_COLOR GColorBlack
 #define DEFAULT_SUN_FILL_COLOR GColorYellow
+#define DEFAULT_ALARM_COLOR GColorSunsetOrange
 
 // night theme defaults
 #define DEFAULT_NIGHT_TIME_COLOR GColorFromHEX(0xFFFFFF)
@@ -39,6 +40,7 @@
 #define DEFAULT_NIGHT_RING_SUNSET_COLOR GColorFromHEX(0x0055FF)
 #define DEFAULT_NIGHT_SUN_STROKE_COLOR GColorBlack
 #define DEFAULT_NIGHT_SUN_FILL_COLOR GColorFromHEX(0xFFFFFF)
+#define DEFAULT_NIGHT_ALARM_COLOR GColorFromHEX(0xFF5555)
 #else
 #define DEFAULT_TIME_COLOR GColorBlack
 #define DEFAULT_SUBTEXT_PRIMARY_COLOR GColorBlack
@@ -53,6 +55,7 @@
 #define DEFAULT_RING_SUNSET_COLOR GColorLightGray
 #define DEFAULT_SUN_STROKE_COLOR GColorBlack
 #define DEFAULT_SUN_FILL_COLOR GColorWhite
+#define DEFAULT_ALARM_COLOR GColorLightGray
 
 // night theme defaults
 #define DEFAULT_NIGHT_TIME_COLOR GColorWhite
@@ -68,6 +71,7 @@
 #define DEFAULT_NIGHT_RING_SUNSET_COLOR GColorLightGray
 #define DEFAULT_NIGHT_SUN_STROKE_COLOR GColorBlack
 #define DEFAULT_NIGHT_SUN_FILL_COLOR GColorWhite
+#define DEFAULT_NIGHT_ALARM_COLOR GColorLightGray
 #endif
 
 // default settings, black and white
@@ -101,6 +105,7 @@ typedef struct {
   GColor ringSunsetColor;
   GColor sunStrokeColor;
   GColor sunFillColor;
+  GColor alarmColor;
 } ColorTheme;
 
 typedef struct {
@@ -157,6 +162,9 @@ typedef struct {
   bool usePrimaryFontForAllWidgets;
   bool enableStatusBar;
   bool statusShowConnection; // show "connected" icon even when connected
+  bool showNextAlarm;
+  GColor alarmColor;
+  GColor nightAlarmColor;
 } Settings;
 
 typedef struct {
@@ -218,6 +226,12 @@ typedef struct {
   bool usePrimaryFontForAllWidgets;
   bool enableStatusBar;
   bool statusShowConnection; // show "connected" icon even when connected
+  // older versions saved this byte as zeroed padding, so only a setting that
+  // defaults to 0 can go here
+  uint8_t reserved;
+  bool showNextAlarm;
+  GColor alarmColor;
+  GColor nightAlarmColor;
 } StoredSettingsExtra;
 
 typedef char StoredSettings_must_fit_in_persist_data

@@ -25,3 +25,7 @@
 
 void draw_center_layer(Layer *layer, GContext *ctx);
 void draw_ring_layer(Layer *layer, GContext *ctx);
+
+// draws a diamond centered on the given point, marking when an alarm goes off
+void draw_alarm_marker(GContext *ctx, GPoint center, GColor fillColor,
+                       GColor strokeColor);

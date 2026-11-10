@@ -4,7 +4,7 @@ import { evaluateCapabilities } from '../utils/capabilities';
 import { getDefaultSettings } from '../utils/defaultSettings';
 import { migrateLegacyCities } from '../data/legacyCities';
 import { matchThemeId, THEME_SELECTION_KEYS } from '../utils/themeUtils';
-import { THEME_KINDS } from '../utils/themeKinds';
+import { migrateAlarmColors, THEME_KINDS } from '../utils/themeKinds';
 import { loadSavedThemes } from '../hooks/useSavedThemes';
 
 interface ConfigContextType {
@@ -73,7 +73,10 @@ export const PebbleConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
     try {
       const params = new URLSearchParams(window.location.search);
       const urlSettings = JSON.parse(params.get('settings') || '{}');
-      loaded = { ...getDefaultSettings(capabilities), ...migrateLegacyCities(urlSettings) };
+      loaded = {
+        ...getDefaultSettings(capabilities),
+        ...migrateAlarmColors(migrateLegacyCities(urlSettings), capabilities),
+      };
     } catch {
       loaded = getDefaultSettings(capabilities);
     }

@@ -24,6 +24,7 @@ const DAY_COLOR_KEYS: (keyof Settings)[] = [
   'SETTING_RING_SUNSET_COLOR',
   'SETTING_SUN_STROKE_COLOR',
   'SETTING_SUN_FILL_COLOR',
+  'SETTING_ALARM_COLOR',
 ];
 
 /** Night-mode equivalents of DAY_COLOR_KEYS, in the same order */
@@ -90,3 +91,30 @@ export const WIDGET_THEMES: ThemeKind = {
 };
 
 export const THEME_KINDS = [DAY_COLOR_THEMES, NIGHT_COLOR_THEMES, WIDGET_THEMES];
+
+/**
+ * Settings saved before the alarm marker had a color of its own: give them
+ * the alarm color of the preset their other colors come from, so they still
+ * match that preset.
+ */
+export const migrateAlarmColors = (
+  settings: Record<string, unknown>,
+  capabilities: Capabilities
+): Record<string, unknown> => {
+  const migrated = { ...settings };
+  const kinds: [ThemeKind, string][] = [
+    [DAY_COLOR_THEMES, 'SETTING_ALARM_COLOR'],
+    [NIGHT_COLOR_THEMES, 'SETTING_NIGHT_ALARM_COLOR'],
+  ];
+  for (const [kind, alarmKey] of kinds) {
+    if (alarmKey in migrated) continue;
+    const current = kind.normalize(migrated) ?? {};
+    const preset = kind.presets(capabilities).find((theme) =>
+      Object.entries(kind.normalize(theme.settings) ?? {}).every(
+        ([key, value]) => key === alarmKey || current[key] === value
+      )
+    );
+    if (preset) migrated[alarmKey] = preset.settings[alarmKey];
+  }
+  return migrated;
+};

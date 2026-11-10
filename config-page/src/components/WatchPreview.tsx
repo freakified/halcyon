@@ -32,6 +32,19 @@ export const WatchPreview: React.FC<WatchPreviewProps> = ({ overrideSettings, is
         getHex(!isNight ? String(effectiveSettings[daySetting]) : String(effectiveSettings[nightSetting]))
     );
 
+    // a 7:00 alarm, drawn like the watch draws the next one
+    const showAlarm = capabilities.ALARMS && Number(effectiveSettings.SETTING_SHOW_NEXT_ALARM) === 1;
+    const alarmMarker = (d: string) => showAlarm && (
+        <path
+            id="SETTING_ALARM_COLOR"
+            fill={color('SETTING_ALARM_COLOR', 'SETTING_NIGHT_ALARM_COLOR')}
+            stroke={color('SETTING_RING_STROKE_COLOR', 'SETTING_NIGHT_RING_STROKE_COLOR')}
+            strokeWidth={3}
+            strokeLinejoin="round"
+            d={d}
+        />
+    );
+
     return (
         <div className={`halite-watch-preview-container ${isRound ? 'round' : 'rect'}`}>
             <div
@@ -61,6 +74,7 @@ export const WatchPreview: React.FC<WatchPreviewProps> = ({ overrideSettings, is
                             <path d="M.797 78.047a90 90 0 0 0-.37 3.189l16.063 1.572c.085-.875.187-1.747.303-2.618L.797 78.047ZM.342 97.844c.094 1.066.206 2.13.337 3.192l16.017-1.979c-.107-.871-.2-1.745-.276-2.62L.342 97.844ZM179.59 81.416a92.206 92.206 0 0 0-.364-3.19l-16 2.111c.115.871.214 1.744.298 2.618l16.066-1.54Zm-.205 19.089a87.38 87.38 0 0 0 .317-3.194L163.617 96c-.072.875-.159 1.75-.261 2.622l16.029 1.883Z" />
                             <path fillRule="evenodd" d="M90 161c39.212 0 71-31.788 71-71s-31.788-71-71-71-71 31.788-71 71 31.788 71 71 71Zm0 3c40.869 0 74-33.131 74-74 0-40.87-33.131-74-74-74-40.87 0-74 33.13-74 74 0 40.869 33.13 74 74 74Z" clipRule="evenodd" />
                         </g>
+                        {alarmMarker('M11 62l7 7-7 7-7-7Z')}
                         <path id="SETTING_SUN_FILL_COLOR" transform={isNight ? "translate(59, 153)" : undefined} fill={color('SETTING_SUN_FILL_COLOR', 'SETTING_NIGHT_SUN_FILL_COLOR')} d="M69 13.5a8.5 8.5 0 1 1-17 0 8.5 8.5 0 0 1 17 0Z" />
                         <path id="SETTING_SUN_STROKE_COLOR" transform={isNight ? "translate(59, 153)" : undefined} fill={color('SETTING_SUN_STROKE_COLOR', 'SETTING_NIGHT_SUN_STROKE_COLOR')} fillRule="evenodd" d="M60.5 19a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11Zm0 3a8.5 8.5 0 1 0 0-17 8.5 8.5 0 0 0 0 17Z" clipRule="evenodd" />
                     </svg>
@@ -84,6 +98,7 @@ export const WatchPreview: React.FC<WatchPreviewProps> = ({ overrideSettings, is
                             <path d="M125 19H19v130h106V19ZM16 16v136h112V16H16Z" />
                             <path d="M0 97h19V72H0v3h16v19H0v3ZM144 72h-19v25h19v-3h-16V75h16v-3Z" />
                         </g>
+                        {alarmMarker('M8 43l7 7-7 7-7-7Z')}
                         <path id="SETTING_SUN_FILL_COLOR" transform={isNight ? "translate(53, 151)" : undefined} fill={color('SETTING_SUN_FILL_COLOR', 'SETTING_NIGHT_SUN_FILL_COLOR')} d="M52 8.5a8.5 8.5 0 1 1-17 0 8.5 8.5 0 0 1 17 0Z" />
                         <path id="SETTING_SUN_STROKE_COLOR" transform={isNight ? "translate(53, 151)" : undefined} fill={color('SETTING_SUN_STROKE_COLOR', 'SETTING_NIGHT_SUN_STROKE_COLOR')} fillRule="evenodd" d="M43.5 14a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11Zm0 3a8.5 8.5 0 1 0 0-17 8.5 8.5 0 0 0 0 17Z" clipRule="evenodd" />
                     </svg>
