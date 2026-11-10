@@ -29,11 +29,15 @@ export interface Capabilities {
   SMARTSTRAP_POWER: boolean;
   HEALTH: boolean;
   HRM: boolean;
+  ALARMS: boolean;
 }
 
 export interface Settings {
+  // which preset each picker shows selected; page state only, worked out
+  // from the settings on load (see matchThemeId) and never sent to the watch
   SETTING_THEME: string;
   SETTING_NIGHT_THEME: string;
+  SETTING_WIDGET_THEME: string;
   SETTING_TIME_COLOR: string;
   SETTING_SUBTEXT_PRIMARY_COLOR: string;
   SETTING_SUBTEXT_SECONDARY_COLOR: string;
@@ -65,16 +69,21 @@ export interface Settings {
   SETTING_USE_NIGHT_THEME: number;
   SETTING_PIP_VISIBILITY: number;
   SETTING_SHOW_LEADING_ZERO: number;
+  SETTING_STATUS_BAR_ENABLED: number;
+  SETTING_STATUS_SHOW_CONNECTION: number; // show "connected" icon even when connected
   SETTING_WIDGET_UPPER_SECONDARY: string;
   SETTING_WIDGET_UPPER_PRIMARY: string;
   SETTING_WIDGET_LOWER_PRIMARY: string;
   SETTING_WIDGET_LOWER_SECONDARY: string;
   SETTING_TEMP_UNIT: number;
   SETTING_LANGUAGE: number;
-  SETTING_ALT_CITY: string;
+  SETTING_ALT_ZONE: string;
   SETTING_ALT_LABEL: string;
-  SETTING_ALT_CITY2: string;
+  SETTING_ALT_ZONE2: string;
   SETTING_ALT_LABEL2: string;
+  // pre-zone city names, kept for apps that haven't updated (see legacyCities.ts)
+  SETTING_ALT_CITY?: string;
+  SETTING_ALT_CITY2?: string;
   SETTING_USE_GPS_LOCATION: number;
   SETTING_MANUAL_LOCATION_NAME: string;
   SETTING_MANUAL_LAT: number;

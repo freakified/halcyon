@@ -1,52 +1,17 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useMemo, useSyncExternalStore } from 'react';
 import { Settings } from '../context/types';
+import { ThemeKind, ThemeSettings } from '../utils/themeUtils';
 
 export interface SavedTheme {
     id: string;
     name: string;
-    /** Always stored with day-style (SETTING_*) keys as the canonical format */
-    settings: Record<string, string>;
+    /** Stored in the kind's saved form (day keys for colors); live form once loaded */
+    settings: ThemeSettings;
 }
 
-const STORAGE_KEY = 'halcyon-saved-themes';
-
-/** Color setting keys for a day theme — the canonical storage format */
-export const DAY_THEME_KEYS: (keyof Settings)[] = [
-    'SETTING_TIME_COLOR',
-    'SETTING_SUBTEXT_PRIMARY_COLOR',
-    'SETTING_SUBTEXT_SECONDARY_COLOR',
-    'SETTING_BG_COLOR',
-    'SETTING_PIP_COLOR_PRIMARY',
-    'SETTING_PIP_COLOR_SECONDARY',
-    'SETTING_RING_STROKE_COLOR',
-    'SETTING_RING_NIGHT_COLOR',
-    'SETTING_RING_DAY_COLOR',
-    'SETTING_RING_SUNRISE_COLOR',
-    'SETTING_RING_SUNSET_COLOR',
-    'SETTING_SUN_STROKE_COLOR',
-    'SETTING_SUN_FILL_COLOR',
-];
-
-/** Night-mode equivalents of DAY_THEME_KEYS, in the same order */
-export const NIGHT_THEME_KEYS: (keyof Settings)[] = [
-    'SETTING_NIGHT_TIME_COLOR',
-    'SETTING_NIGHT_SUBTEXT_PRIMARY_COLOR',
-    'SETTING_NIGHT_SUBTEXT_SECONDARY_COLOR',
-    'SETTING_NIGHT_BG_COLOR',
-    'SETTING_NIGHT_PIP_COLOR_PRIMARY',
-    'SETTING_NIGHT_PIP_COLOR_SECONDARY',
-    'SETTING_NIGHT_RING_STROKE_COLOR',
-    'SETTING_NIGHT_RING_NIGHT_COLOR',
-    'SETTING_NIGHT_RING_DAY_COLOR',
-    'SETTING_NIGHT_RING_SUNRISE_COLOR',
-    'SETTING_NIGHT_RING_SUNSET_COLOR',
-    'SETTING_NIGHT_SUN_STROKE_COLOR',
-    'SETTING_NIGHT_SUN_FILL_COLOR',
-];
-
 /** Convert any SETTING_NIGHT_* keys to their SETTING_* equivalents */
-export function remapToDayKeys(settings: Record<string, string>): Record<string, string> {
-    const result: Record<string, string> = {};
+export function remapToDayKeys(settings: Record<string, unknown>): Record<string, unknown> {
+    const result: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(settings)) {
         result[key.replace(/^SETTING_NIGHT_/, 'SETTING_')] = value;
     }
@@ -54,8 +19,8 @@ export function remapToDayKeys(settings: Record<string, string>): Record<string,
 }
 
 /** Convert SETTING_* keys to their SETTING_NIGHT_* equivalents */
-export function remapToNightKeys(settings: Record<string, string>): Record<string, string> {
-    const result: Record<string, string> = {};
+export function remapToNightKeys(settings: Record<string, unknown>): Record<string, unknown> {
+    const result: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(settings)) {
         // Only remap keys that don't already have the NIGHT_ prefix
         result[key.replace(/^SETTING_(?!NIGHT_)/, 'SETTING_NIGHT_')] = value;
@@ -63,72 +28,100 @@ export function remapToNightKeys(settings: Record<string, string>): Record<strin
     return result;
 }
 
-function loadFromStorage(): SavedTheme[] {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? JSON.parse(raw) : [];
-    } catch {
-        return [];
+// The day and night pickers share one list of saved color themes, so the
+// lists live here, one per storage key, rather than in each hook's state
+const stores = new Map<string, SavedTheme[]>();
+const listeners = new Set<() => void>();
+
+function readStore(key: string): SavedTheme[] {
+    if (!stores.has(key)) {
+        try {
+            const raw = localStorage.getItem(key);
+            stores.set(key, raw ? JSON.parse(raw) : []);
+        } catch {
+            stores.set(key, []);
+        }
     }
+    return stores.get(key)!;
 }
 
-function saveToStorage(themes: SavedTheme[]) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(themes));
+function writeStore(key: string, update: (themes: SavedTheme[]) => SavedTheme[]) {
+    const themes = update(readStore(key));
+    stores.set(key, themes);
+    localStorage.setItem(key, JSON.stringify(themes));
+    listeners.forEach((listener) => listener());
 }
 
-function getNextName(themes: SavedTheme[]): string {
+function subscribe(listener: () => void) {
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+}
+
+/** A stored theme in the kind's live form, or null if nothing of the kind is left in it */
+function toLive(kind: ThemeKind, theme: SavedTheme): SavedTheme | null {
+    const settings = kind.normalize(kind.fromSaved(theme.settings));
+    return settings ? { ...theme, settings } : null;
+}
+
+/** The user's saved themes of one kind, in live form */
+export function loadSavedThemes(kind: ThemeKind): SavedTheme[] {
+    return readStore(kind.storageKey)
+        .map((theme) => toLive(kind, theme))
+        .filter((theme): theme is SavedTheme => theme !== null);
+}
+
+function getNextName(themes: SavedTheme[], prefix: string): string {
     let max = 0;
     for (const t of themes) {
-        const match = t.name.match(/^Saved Theme (\d+)$/);
+        const match = t.name.match(new RegExp(`^${prefix} (\\d+)$`));
         if (match) max = Math.max(max, parseInt(match[1], 10));
     }
-    return `Saved Theme ${max + 1}`;
+    return `${prefix} ${max + 1}`;
 }
 
 function generateId(): string {
     return `saved_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export function useSavedThemes() {
-    const [savedThemes, setSavedThemes] = useState<SavedTheme[]>(loadFromStorage);
+export function useSavedThemes(kind: ThemeKind) {
+    const stored = useSyncExternalStore(subscribe, () => readStore(kind.storageKey));
 
-    // Persist on change
-    useEffect(() => {
-        saveToStorage(savedThemes);
-    }, [savedThemes]);
-
-    /**
-     * Capture the current settings as a new saved theme.
-     * Pass `isNight: true` when saving from the night panel so night-mode
-     * keys are captured and then normalized to day-key format for storage.
-     */
-    const saveTheme = useCallback(
-        (settings: Settings, isNight: boolean): SavedTheme => {
-            const keys = isNight ? NIGHT_THEME_KEYS : DAY_THEME_KEYS;
-            const captured: Record<string, string> = {};
-            for (const key of keys) {
-                captured[key] = String(settings[key]);
-            }
-            const theme: SavedTheme = {
-                id: generateId(),
-                name: getNextName(savedThemes),
-                // Always store in day-key format regardless of which panel saved it
-                settings: isNight ? remapToDayKeys(captured) : captured,
-            };
-            // Prepend so the list is newest-first
-            setSavedThemes((prev) => [theme, ...prev]);
-            return theme;
-        },
-        [savedThemes]
+    const savedThemes = useMemo(
+        () => stored
+            .map((theme) => toLive(kind, theme))
+            .filter((theme): theme is SavedTheme => theme !== null),
+        [stored, kind]
     );
 
-    const deleteTheme = useCallback((id: string) => {
-        setSavedThemes((prev) => prev.filter((t) => t.id !== id));
-    }, []);
+    /** Store live settings as a new theme, returned in live form */
+    const addTheme = useCallback(
+        (settings: ThemeSettings, name?: string): SavedTheme => {
+            const theme: SavedTheme = {
+                id: generateId(),
+                name: name || getNextName(savedThemes, kind.savedNamePrefix),
+                settings: kind.toSaved(settings),
+            };
+            // Prepend so the list is newest-first
+            writeStore(kind.storageKey, (prev) => [theme, ...prev]);
+            return { ...theme, settings };
+        },
+        [savedThemes, kind]
+    );
+
+    /** Capture the current settings as a new saved theme */
+    const saveTheme = useCallback(
+        (settings: Settings): SavedTheme => addTheme(kind.normalize({ ...settings }) ?? {}),
+        [addTheme, kind]
+    );
+
+    const deleteTheme = useCallback(
+        (id: string) => writeStore(kind.storageKey, (prev) => prev.filter((t) => t.id !== id)),
+        [kind]
+    );
 
     /**
-     * Import a theme from JSON. Accepts both day-key and night-key exports —
-     * any SETTING_NIGHT_* keys are automatically remapped to SETTING_* before storing.
+     * Import a theme from JSON. Color themes are accepted with either day or
+     * night keys, whichever picker they're imported into.
      */
     const importTheme = useCallback(
         (json: string): { success: boolean; error?: string; theme?: SavedTheme } => {
@@ -136,51 +129,34 @@ export function useSavedThemes() {
                 const parsed = JSON.parse(json);
 
                 // Accept either { settings: { ... } } or a flat { SETTING_...: ... } object
-                const raw: Record<string, string> =
+                const raw: Record<string, unknown> =
                     parsed.settings && typeof parsed.settings === 'object'
                         ? parsed.settings
                         : parsed;
 
-                // Normalize to day-key format (transparently handles both day and night exports)
-                const daySettings = remapToDayKeys(raw);
-
-                // Validate that at least some expected keys are present
-                const validKeys = DAY_THEME_KEYS.filter((k) => k in daySettings);
-                if (validKeys.length === 0) {
+                const settings = kind.normalize(kind.fromSaved(raw));
+                if (!settings) {
                     return {
                         success: false,
                         error: 'No valid theme settings found in the pasted JSON.',
                     };
                 }
 
-                // Keep only recognized day-format keys
-                const colorSettings: Record<string, string> = {};
-                for (const key of DAY_THEME_KEYS) {
-                    if (key in daySettings) colorSettings[key] = daySettings[key];
-                }
-
-                const theme: SavedTheme = {
-                    id: generateId(),
-                    name: parsed.name || getNextName(savedThemes),
-                    settings: colorSettings,
-                };
-                setSavedThemes((prev) => [theme, ...prev]);
+                const theme = addTheme(settings, typeof parsed.name === 'string' ? parsed.name : undefined);
                 return { success: true, theme };
             } catch {
                 return { success: false, error: 'Invalid JSON. Please check and try again.' };
             }
         },
-        [savedThemes]
+        [addTheme, kind]
     );
 
-    /**
-     * Serialize settings to a shareable JSON string.
-     * Always outputs day-key format regardless of whether the input uses
-     * day or night keys, so shared themes are always in a consistent format.
-     */
-    const exportTheme = useCallback((settings: Record<string, string>): string => {
-        return JSON.stringify(remapToDayKeys(settings), null, 2);
-    }, []);
+    /** Serialize this kind's part of some live settings to a shareable JSON string */
+    const exportTheme = useCallback(
+        (settings: Record<string, unknown>): string =>
+            JSON.stringify(kind.toSaved(kind.normalize(settings) ?? {}), null, 2),
+        [kind]
+    );
 
     return { savedThemes, saveTheme, deleteTheme, importTheme, exportTheme };
 }

@@ -137,6 +137,7 @@ export const renderPreview = (
     '{day}': String(now.getDate()),
     '{month_num}': pad2(now.getMonth() + 1),
     '{year}': String(now.getFullYear()),
+    '{year_short}': String(now.getFullYear().toString().slice(-2)),
     '{day_of_year}': String(dayOfYear(now)),
     '{week_of_year}': String(isoWeek(now)),
     '{alt_tz}': `${safeAltLabel} 7:38`,
@@ -153,6 +154,7 @@ export const renderPreview = (
     '{dist_unit}': isImperial ? 'MI' : 'KM',
     '{hr}': '72',
     '{batt}': '85',
+    '{alarm}': '7:00',
     // Solar / weather (PKJS-side)
     '{sunrise}': '6:42',
     '{sunset}': '18:18',

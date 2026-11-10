@@ -2,6 +2,7 @@
 // and the WatchPreview component. Previews are computed at render time so they
 // reflect the user's selected language.
 
+import { Capabilities } from '../context/types';
 import { renderPreview } from './i18nPreview';
 
 export interface WidgetOption {
@@ -11,57 +12,92 @@ export interface WidgetOption {
   category?: string;
 }
 
-export interface WidgetToken {
+/** Anything only offered on watches with a given capability */
+interface RequiresCapability {
+  /** Only offer this on watches with this capability */
+  requires?: keyof Capabilities;
+}
+
+export const isAvailable = (item: RequiresCapability, capabilities: Capabilities): boolean =>
+  !item.requires || !!capabilities[item.requires];
+
+export interface WidgetToken extends RequiresCapability {
   token: string;
   label: string;
   category: string;
-  requires?: 'health' | 'hrm';
 }
 
 export type WidgetTokenId = string;
 
-interface WidgetOptionTemplate {
+interface WidgetOptionTemplate extends RequiresCapability {
   value: string;
   label: string;
   category?: string;
 }
 
-const WIDGET_TEMPLATES: WidgetOptionTemplate[] = [
-  { value: '', label: 'None' },
+/**
+ * The built-in widgets' format strings, by name. The widget selector lists
+ * these; presets and defaults build on them too, so they stay in step.
+ */
+export const WIDGETS = {
+  NONE: '',
   // Date/time
-  { value: '{local_date}', label: 'Date', category: 'Date & Time' },
-  { value: '{alt_tz}', label: 'Alternate Time Zone 1', category: 'World Time' },
-  { value: '{alt_tz2}', label: 'Alternate Time Zone 2', category: 'World Time' },
-  { value: '{year}-{month_num}-{day0}', label: 'Numeric Date', category: 'Date & Time' },
-  { value: '{t:DAY} {day_of_year}', label: 'Day Number', category: 'Date & Time' },
-  { value: '{t:WEEK} {week_of_year}', label: 'Week Number', category: 'Date & Time' },
-  { value: '{year}', label: 'Year', category: 'Date & Time' },
+  DATE: '{local_date}',
+  ALT_TZ: '{alt_tz}',
+  ALT_TZ2: '{alt_tz2}',
+  NUMERIC_DATE: '{year}-{month_num}-{day0}',
+  DAY_NUMBER: '{t:DAY} {day_of_year}',
+  WEEK_NUMBER: '{t:WEEK} {week_of_year}',
+  YEAR: '{year}',
   // Solar
-  { value: '{next_solar}', label: 'Next sunrise/sunset', category: 'Solar' },
+  NEXT_SOLAR: '{next_solar}',
   // Health
-  { value: '{steps} {t:STEPS}', label: 'Steps', category: 'Health' },
-  { value: '{dist} {dist_unit}', label: 'Distance Walked', category: 'Health' },
-  { value: '{hr} {t:BPM}', label: 'Current Heart Rate', category: 'Health' },
+  STEPS: '{steps} {t:STEPS}',
+  DISTANCE: '{dist} {dist_unit}',
+  HEART_RATE: '{hr} {t:BPM}',
   // Device
-  { value: '{t:BATTERY} {batt}%', label: 'Battery %', category: 'Device' },
+  BATTERY: '{t:BATTERY} {batt}%',
+  ALARM: '{alarm}',
   // Weather
-  {
-    value: '{temp}° ({thi}°/{tlo}°)',
-    label: 'Temperature (Current & Forecast)',
-    category: 'Weather',
-  },
-  { value: '{cond}', label: 'Current Condition', category: 'Weather' },
-  { value: '{hum}% {t:HUMIDITY}', label: 'Humidity', category: 'Weather' },
-  { value: '{wind} {wind_unit} {wind_dir}', label: 'Wind', category: 'Weather' },
-  { value: '{t:UV} {uv}', label: 'UV Index', category: 'Weather' },
-  { value: '{t:DPT} {dew}°', label: 'Dew Point', category: 'Weather' },
-  { value: '{t:RAIN} {pop}%', label: 'Chance of Rain', category: 'Weather' },
+  FORECAST: '{temp}° ({thi}°/{tlo}°)',
+  CONDITION: '{cond}',
+  HUMIDITY: '{hum}% {t:HUMIDITY}',
+  WIND: '{wind} {wind_unit} {wind_dir}',
+  UV_INDEX: '{t:UV} {uv}',
+  DEW_POINT: '{t:DPT} {dew}°',
+  RAIN: '{t:RAIN} {pop}%',
+} as const;
+
+const WIDGET_TEMPLATES: WidgetOptionTemplate[] = [
+  { value: WIDGETS.NONE, label: 'None' },
+  // Date/time
+  { value: WIDGETS.DATE, label: 'Date', category: 'Date & Time' },
+  { value: WIDGETS.ALT_TZ, label: 'Alternate Time Zone 1', category: 'World Time' },
+  { value: WIDGETS.ALT_TZ2, label: 'Alternate Time Zone 2', category: 'World Time' },
+  { value: WIDGETS.NUMERIC_DATE, label: 'Numeric Date', category: 'Date & Time' },
+  { value: WIDGETS.DAY_NUMBER, label: 'Day Number', category: 'Date & Time' },
+  { value: WIDGETS.WEEK_NUMBER, label: 'Week Number', category: 'Date & Time' },
+  { value: WIDGETS.YEAR, label: 'Year', category: 'Date & Time' },
+  // Solar
+  { value: WIDGETS.NEXT_SOLAR, label: 'Next sunrise/sunset', category: 'Solar' },
+  // Health
+  { value: WIDGETS.STEPS, label: 'Steps', category: 'Health', requires: 'HEALTH' },
+  { value: WIDGETS.DISTANCE, label: 'Distance Walked', category: 'Health', requires: 'HEALTH' },
+  { value: WIDGETS.HEART_RATE, label: 'Current Heart Rate', category: 'Health', requires: 'HRM' },
+  // Device
+  { value: WIDGETS.BATTERY, label: 'Battery %', category: 'Device' },
+  { value: WIDGETS.ALARM, label: 'Next Alarm', category: 'Device', requires: 'ALARMS' },
+  // Weather
+  { value: WIDGETS.FORECAST, label: 'Temperature (Current & Forecast)', category: 'Weather' },
+  { value: WIDGETS.CONDITION, label: 'Current Condition', category: 'Weather' },
+  { value: WIDGETS.HUMIDITY, label: 'Humidity', category: 'Weather' },
+  { value: WIDGETS.WIND, label: 'Wind', category: 'Weather' },
+  { value: WIDGETS.UV_INDEX, label: 'UV Index', category: 'Weather' },
+  { value: WIDGETS.DEW_POINT, label: 'Dew Point', category: 'Weather' },
+  { value: WIDGETS.RAIN, label: 'Chance of Rain', category: 'Weather' },
   // Custom
   { value: '__custom__', label: 'Custom…', category: 'Custom' },
 ];
-
-const HEALTH_LABELS = new Set(['Steps', 'Distance Walked']);
-const HRM_LABELS = new Set(['Current Heart Rate']);
 
 export const WIDGET_TOKENS: WidgetToken[] = [
   { token: '{local_date}', label: 'Local Date', category: 'Date & Time' },
@@ -79,6 +115,7 @@ export const WIDGET_TOKENS: WidgetToken[] = [
   { token: '{day}', label: 'Day', category: 'Date & Time' },
   { token: '{month_num}', label: 'Month No.', category: 'Date & Time' },
   { token: '{year}', label: 'Year', category: 'Date & Time' },
+  { token: '{year_short}', label: 'Year (2-Digit)', category: 'Date & Time' },
   { token: '{day_of_year}', label: 'Day No.', category: 'Date & Time' },
   { token: '{week_of_year}', label: 'Week No.', category: 'Date & Time' },
   { token: '{sunrise}', label: 'Sunrise', category: 'Solar' },
@@ -86,23 +123,24 @@ export const WIDGET_TOKENS: WidgetToken[] = [
   { token: '{next_solar}', label: 'Next sunrise/sunset', category: 'Solar' },
   { token: '{next_solar_label}', label: 'Rise/Set Label', category: 'Solar' },
   { token: '{next_solar_time}', label: 'Solar Time', category: 'Solar' },
-  { token: '{steps}', label: 'Steps', category: 'Health & Device', requires: 'health' },
-  { token: '{dist}', label: 'Distance', category: 'Health & Device', requires: 'health' },
-  { token: '{dist_unit}', label: 'Dist. Unit', category: 'Health & Device', requires: 'health' },
-  { token: '{hr}', label: 'Heart Rate', category: 'Health & Device', requires: 'hrm' },
+  { token: '{steps}', label: 'Steps', category: 'Health & Device', requires: 'HEALTH' },
+  { token: '{dist}', label: 'Distance', category: 'Health & Device', requires: 'HEALTH' },
+  { token: '{dist_unit}', label: 'Dist. Unit', category: 'Health & Device', requires: 'HEALTH' },
+  { token: '{hr}', label: 'Heart Rate', category: 'Health & Device', requires: 'HRM' },
   { token: '{batt}', label: 'Battery', category: 'Health & Device' },
-  { token: '{temp}', label: 'Temp', category: 'Weather' },
-  { token: '{thi}', label: 'High', category: 'Weather' },
-  { token: '{tlo}', label: 'Low', category: 'Weather' },
+  { token: '{alarm}', label: 'Next Alarm Time', category: 'Health & Device', requires: 'ALARMS' },
+  { token: '{temp}', label: 'Current Temp', category: 'Weather' },
+  { token: '{thi}', label: 'Today\'s High Temp', category: 'Weather' },
+  { token: '{tlo}', label: 'Today\' Low Temp', category: 'Weather' },
   { token: '{cond}', label: 'Condition', category: 'Weather' },
-  { token: '{cond_day}', label: 'Day Cond.', category: 'Weather' },
-  { token: '{hum}', label: 'Humidity', category: 'Weather' },
-  { token: '{wind}', label: 'Wind', category: 'Weather' },
+  { token: '{cond_day}', label: 'Today\'s Forecast Condition', category: 'Weather' },
+  { token: '{hum}', label: 'Current Humidity', category: 'Weather' },
+  { token: '{wind}', label: 'Current Wind', category: 'Weather' },
   { token: '{wind_unit}', label: 'Wind Unit', category: 'Weather' },
-  { token: '{wind_dir}', label: 'Wind Dir.', category: 'Weather' },
-  { token: '{uv}', label: 'UV', category: 'Weather' },
-  { token: '{rain}', label: 'Rain', category: 'Weather' },
-  { token: '{pop}', label: 'Rain %', category: 'Weather' },
+  { token: '{wind_dir}', label: 'Current Wind Dir.', category: 'Weather' },
+  { token: '{uv}', label: 'UV Index', category: 'Weather' },
+  { token: '{rain}', label: 'Rain (Amount)', category: 'Weather' },
+  { token: '{pop}', label: 'Rain (Probability)', category: 'Weather' },
   { token: '{dew}', label: 'Dew Point', category: 'Weather' },
   { token: '{temp_unit}', label: 'Temp Unit', category: 'Weather' },
 ];
@@ -126,16 +164,18 @@ export const containsWidgets = (
   return widgetValues.some((value) => tokens.some((token) => value?.includes(token)));
 };
 
+/** The tokens the custom widget editor offers on this watch */
+export const getWidgetTokens = (capabilities: Capabilities): WidgetToken[] =>
+  WIDGET_TOKENS.filter((token) => isAvailable(token, capabilities));
+
 export const getWidgetOptions = (
   lang: number,
-  hasHealth: boolean,
-  hasHrm: boolean,
+  capabilities: Capabilities,
   isImperial: boolean = false,
   altLabel: string = 'TYO',
   altLabel2: string = 'UTC',
 ): WidgetOption[] => {
-  return WIDGET_TEMPLATES.filter((t) => hasHealth || !HEALTH_LABELS.has(t.label))
-    .filter((t) => hasHrm || !HRM_LABELS.has(t.label))
+  return WIDGET_TEMPLATES.filter((t) => isAvailable(t, capabilities))
     .map((t) => {
       const preview =
         t.value && t.value !== '__custom__'

@@ -13,15 +13,12 @@ import {
   AltTimezoneSection,
   LocationSection,
   SolarTimesSection,
+  Icon,
+  ICONS,
 } from '../components';
 import { useSavedThemes } from '../hooks/useSavedThemes';
-import lightThemes from '../data/light-themes.json';
-import neutralThemes from '../data/neutral-themes.json';
-import darkThemes from '../data/dark-themes.json';
-import lightThemesBw from '../data/light-themes-bw.json';
-import neutralThemesBw from '../data/neutral-themes-bw.json';
-import darkThemesBw from '../data/dark-themes-bw.json';
-import { prepareThemes } from '../utils/themeUtils';
+import customWidgetsIconUrl from '../assets/custom-widgets-icon.svg';
+import { DAY_COLOR_THEMES, NIGHT_COLOR_THEMES, WIDGET_THEMES } from '../utils/themeKinds';
 import {
   ALT_TIMEZONE_WIDGET_IDS,
   ALT_TIMEZONE2_WIDGET_IDS,
@@ -42,29 +39,27 @@ export const SettingsPage: React.FC = () => {
   const alt2WidgetSelected = containsWidgets(widgetValues, ALT_TIMEZONE2_WIDGET_IDS);
   const weatherWidgetSelected = containsWidgets(widgetValues, WEATHER_WIDGET_IDS);
 
-  const activeThemes = React.useMemo(
-    () =>
-      capabilities.BW
-        ? prepareThemes(lightThemesBw, neutralThemesBw, darkThemesBw, false)
-        : prepareThemes(lightThemes, neutralThemes, darkThemes, false),
-    [capabilities.BW],
-  );
+  const activeThemes = React.useMemo(() => DAY_COLOR_THEMES.presets(capabilities), [capabilities]);
 
   const activeNightThemes = React.useMemo(
-    () =>
-      capabilities.BW
-        ? prepareThemes(darkThemesBw, neutralThemesBw, lightThemesBw, true)
-        : prepareThemes(darkThemes, neutralThemes, lightThemes, true),
-    [capabilities.BW],
+    () => NIGHT_COLOR_THEMES.presets(capabilities),
+    [capabilities],
   );
 
-  const savedThemes = useSavedThemes();
+  const widgetThemes = React.useMemo(() => WIDGET_THEMES.presets(capabilities), [capabilities]);
+
+  const daySavedThemes = useSavedThemes(DAY_COLOR_THEMES);
+  const nightSavedThemes = useSavedThemes(NIGHT_COLOR_THEMES);
+  const savedWidgetThemes = useSavedThemes(WIDGET_THEMES);
 
   const getDaySavedTheme = () =>
-    savedThemes.savedThemes.find((t) => t.id === settings.SETTING_THEME);
+    daySavedThemes.savedThemes.find((t) => t.id === settings.SETTING_THEME);
 
   const getNightSavedTheme = () =>
-    savedThemes.savedThemes.find((t) => t.id === settings.SETTING_NIGHT_THEME);
+    nightSavedThemes.savedThemes.find((t) => t.id === settings.SETTING_NIGHT_THEME);
+
+  const getSavedWidgetTheme = () =>
+    savedWidgetThemes.savedThemes.find((t) => t.id === settings.SETTING_WIDGET_THEME);
 
   return (
     <Page title="Halcyon Settings">
@@ -72,17 +67,18 @@ export const SettingsPage: React.FC = () => {
         <ThemePicker
           messageKey="SETTING_THEME"
           themes={activeThemes}
-          savedThemes={savedThemes.savedThemes}
+          savedThemes={daySavedThemes.savedThemes}
           label="Theme preset"
         />
         <CustomThemePanel
           themeId={settings.SETTING_THEME}
           savedTheme={getDaySavedTheme()}
-          onSave={(s) => savedThemes.saveTheme(s, false)}
-          onDelete={savedThemes.deleteTheme}
-          onImport={savedThemes.importTheme}
-          onExport={savedThemes.exportTheme}
+          onSave={daySavedThemes.saveTheme}
+          onDelete={daySavedThemes.deleteTheme}
+          onImport={daySavedThemes.importTheme}
+          onExport={daySavedThemes.exportTheme}
           onSelectTheme={(id) => updateSetting('SETTING_THEME', id)}
+          importTitle={DAY_COLOR_THEMES.importTitle}
         />
         {settings.SETTING_THEME === 'custom' && (
           <>
@@ -108,12 +104,10 @@ export const SettingsPage: React.FC = () => {
             <ColorPicker
               label="Dial marker color (primary)"
               messageKey="SETTING_PIP_COLOR_PRIMARY"
-              bwAllowGrey={false}
             />
             <ColorPicker
               label="Dial marker color (secondary)"
               messageKey="SETTING_PIP_COLOR_SECONDARY"
-              bwAllowGrey={false}
             />
             <ColorPicker
               label="Ring outline color"
@@ -143,17 +137,18 @@ export const SettingsPage: React.FC = () => {
               label="Night theme preset"
               themes={activeNightThemes}
               watchPreviewProps={{ isNight: true }}
-              savedThemes={savedThemes.savedThemes}
+              savedThemes={nightSavedThemes.savedThemes}
             />
             <CustomThemePanel
               themeId={settings.SETTING_NIGHT_THEME}
               savedTheme={getNightSavedTheme()}
               watchPreviewProps={{ isNight: true }}
-              onSave={(s) => savedThemes.saveTheme(s, true)}
-              onDelete={savedThemes.deleteTheme}
-              onImport={savedThemes.importTheme}
-              onExport={savedThemes.exportTheme}
+              onSave={nightSavedThemes.saveTheme}
+              onDelete={nightSavedThemes.deleteTheme}
+              onImport={nightSavedThemes.importTheme}
+              onExport={nightSavedThemes.exportTheme}
               onSelectTheme={(id) => updateSetting('SETTING_NIGHT_THEME', id)}
+              importTitle={NIGHT_COLOR_THEMES.importTitle}
             />
             {settings.SETTING_NIGHT_THEME === 'custom' && (
               <>
@@ -217,12 +212,40 @@ export const SettingsPage: React.FC = () => {
       </Section>
 
       <Section title="Widgets">
-        <WidgetSelector />
+        <ThemePicker
+          messageKey="SETTING_WIDGET_THEME"
+          themes={widgetThemes}
+          savedThemes={savedWidgetThemes.savedThemes}
+          label="Widget preset"
+          customIcon={customWidgetsIconUrl}
+        />
+        <CustomThemePanel
+          themeId={settings.SETTING_WIDGET_THEME}
+          savedTheme={getSavedWidgetTheme()}
+          onSave={savedWidgetThemes.saveTheme}
+          onDelete={savedWidgetThemes.deleteTheme}
+          onImport={savedWidgetThemes.importTheme}
+          onExport={savedWidgetThemes.exportTheme}
+          onSelectTheme={(id) => updateSetting('SETTING_WIDGET_THEME', id)}
+          importTitle={WIDGET_THEMES.importTitle}
+        />
+        {/* the panel above already previews the live widgets */}
+        {settings.SETTING_WIDGET_THEME === 'custom' && <WidgetSelector showPreview={false} />}
+        <div className="halite-info-text">
+          <span className="halite-info-icon" aria-hidden="true">
+            <Icon path={ICONS.INFO} />
+          </span>
+          <div className="halite-info-content">
+            Widget themes are still a work in progress! If you can think of a good one, please send
+            it along via the <strong>contact developer</strong> option in the Pebble app!
+          </div>
+        </div>
       </Section>
 
       {altWidgetSelected && (
         <AltTimezoneSection
           title="Alternate Time Zone 1"
+          zoneKey="SETTING_ALT_ZONE"
           cityKey="SETTING_ALT_CITY"
           labelKey="SETTING_ALT_LABEL"
         />
@@ -231,6 +254,7 @@ export const SettingsPage: React.FC = () => {
       {alt2WidgetSelected && (
         <AltTimezoneSection
           title="Alternate Time Zone 2"
+          zoneKey="SETTING_ALT_ZONE2"
           cityKey="SETTING_ALT_CITY2"
           labelKey="SETTING_ALT_LABEL2"
         />
@@ -266,10 +290,24 @@ export const SettingsPage: React.FC = () => {
         />
       </Section>
 
+      <Section title="Status Icon">
+        <Toggle
+          label="Show quiet time and watch disconnected status icon"
+          description="Show a small icon at the top of the screen during Quiet Time or when your phone is disconnected"
+          messageKey="SETTING_STATUS_BAR_ENABLED"
+        />
+        {!!settings.SETTING_STATUS_BAR_ENABLED && (
+          <Toggle
+            label="Always show connection status"
+            description="Also show the icon while connected to your phone, not just when disconnected"
+            messageKey="SETTING_STATUS_SHOW_CONNECTION"
+          />
+        )}
+      </Section>
+
       <Section title="General">
         <Select
-          label="Language (Experimental)"
-          description="Controls the language displayed on the watchface"
+          label="Language"
           messageKey="SETTING_LANGUAGE"
           options={[
             { label: 'English (US)', value: 0 },

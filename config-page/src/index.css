@@ -2,7 +2,7 @@
   color-scheme: light dark;
 
   /* Brand Colors */
-  --halite-orange: #FF5500;
+  --halite-orange: #ff5500;
   --halite-orange-active: #e03e00;
   --halite-donation-green: #17633f;
   --halite-donation-green-active: #0f4d30;
@@ -55,7 +55,9 @@ body {
   background-color: var(--bg-surface);
   color: var(--text-main);
   -webkit-font-smoothing: antialiased;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 * {
@@ -73,7 +75,9 @@ button {
   min-height: 100vh;
   max-width: 600px;
   margin: 0 auto;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease;
   padding-block-end: 16px;
 }
 
@@ -114,7 +118,9 @@ button {
   background-color: var(--bg-surface-elevated);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 .halite-section-title {
@@ -178,7 +184,9 @@ button {
   font-size: 0.95rem;
   font-weight: 600;
   border-radius: 8px;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease;
 }
 
 .halite-save-button:active {
@@ -198,7 +206,10 @@ button {
   font-size: 0.95rem;
   font-weight: 600;
   border-radius: 8px;
-  transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.1s ease;
 }
 
 .halite-reset-button:active {
@@ -256,7 +267,11 @@ button {
   font-size: 0.86rem;
   font-weight: 700;
   text-decoration: none;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .halite-donation-button {
@@ -326,7 +341,7 @@ button {
   text-align: right;
 }
 
-.halite-color-value>.halite-color-swatch {
+.halite-color-value > .halite-color-swatch {
   width: 44px;
   height: 28px;
   border-radius: 6px;
@@ -639,8 +654,26 @@ input[type='checkbox'] {
   font-weight: bold;
 }
 
-.halite-watch-preview-widget.primary {
-  font-size: 14px;
+.halite-watch-preview-widget.primary,
+.halite-watch-face.large-fonts .halite-watch-preview-widget {
+  font-size: 13px;
+}
+
+.halite-watch-face.large-fonts .halite-watch-preview-widget.primary {
+  font-size: 15px;
+}
+
+.halite-watch-face.large .halite-watch-preview-widget {
+  font-size: 8.5px;
+}
+
+.halite-watch-face.large .halite-watch-preview-widget.primary,
+.halite-watch-face.large.large-fonts .halite-watch-preview-widget {
+  font-size: 11px;
+}
+
+.halite-watch-face.large.large-fonts .halite-watch-preview-widget.primary {
+  font-size: 13.5px;
 }
 
 .halite-watch-time {
@@ -697,25 +730,31 @@ input[type='checkbox'] {
   flex-shrink: 0;
   width: 92px;
   border-radius: 12px;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .halite-theme-card.round {
   width: 103px;
 }
 
-.halite-theme-card[data-selected="true"] .halite-theme-card-preview {
-  box-shadow: 0 0 0 2px var(--bg-surface), 0 0 0 4px var(--halite-orange);
+.halite-theme-card[data-selected='true'] .halite-theme-card-preview {
+  box-shadow:
+    0 0 0 2px var(--bg-surface),
+    0 0 0 4px var(--halite-orange);
 }
 
-.halite-theme-card[data-focus-visible="true"] .halite-theme-card-preview {
+.halite-theme-card[data-focus-visible='true'] .halite-theme-card-preview {
   box-shadow: 0 0 0 3px var(--border-focus);
 }
 
 .halite-theme-card-preview {
   border-radius: 6px;
   overflow: hidden;
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
   display: flex;
   justify-content: center;
   pointer-events: none;
@@ -744,7 +783,7 @@ input[type='checkbox'] {
   text-align: center;
 }
 
-.halite-theme-card[data-selected="true"] .halite-theme-card-label {
+.halite-theme-card[data-selected='true'] .halite-theme-card-label {
   color: var(--halite-orange);
 }
 
@@ -912,6 +951,7 @@ input[type='checkbox'] {
   align-items: center;
   gap: 16px;
   padding: 1.25rem 1rem;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .widget-selector-preview {
@@ -1158,7 +1198,6 @@ input[type='checkbox'] {
   box-shadow: 0 -8px 18px rgba(0, 0, 0, 0.08);
 }
 
-
 @media (max-width: 320px) {
   .widget-selector-container {
     flex-direction: column;
@@ -1175,7 +1214,6 @@ input[type='checkbox'] {
   }
 }
 
-
 .halite-location-search {
   flex-direction: column;
   align-items: stretch;
@@ -1191,7 +1229,6 @@ input[type='checkbox'] {
   flex: 1;
   min-width: 0;
 }
-
 
 .halite-location-results {
   list-style: none;
@@ -1240,4 +1277,30 @@ input[type='checkbox'] {
   color: #e74c3c;
   font-size: 0.9rem;
   font-weight: 600;
+}
+
+.halite-info-text,
+.halite-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 14px 16px 16px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.halite-info-icon,
+.halite-info-text-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.halite-info-content,
+.halite-info-text-content {
+  flex: 1;
 }

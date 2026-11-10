@@ -14,6 +14,8 @@ export const WatchPreview: React.FC<WatchPreviewProps> = ({ overrideSettings, is
 
     const effectiveSettings = { ...settings, ...overrideSettings };
     const isRound = capabilities.ROUND && !capabilities.RECT;
+    const isLarge = capabilities.DISPLAY_200x228 || capabilities.DISPLAY_260x260_ROUND;
+    const largeFonts = Number(effectiveSettings.SETTING_USE_LARGE_FONTS) === 1;
     const previewDimensions = isRound ? { width: 180, height: 180 } : { width: 144, height: 168 };
     const altLabel = String(effectiveSettings.SETTING_ALT_LABEL || 'TYO');
     const altLabel2 = String(effectiveSettings.SETTING_ALT_LABEL2 || 'UTC');
@@ -33,7 +35,7 @@ export const WatchPreview: React.FC<WatchPreviewProps> = ({ overrideSettings, is
     return (
         <div className={`halite-watch-preview-container ${isRound ? 'round' : 'rect'}`}>
             <div
-                className={`halite-watch-face ${isRound ? 'round' : 'rect'}`}
+                className={`halite-watch-face ${isRound ? 'round' : 'rect'} ${isLarge ? 'large' : 'small'}${largeFonts ? ' large-fonts' : ''}`}
                 style={previewDimensions}
             >
                 {isRound ? (

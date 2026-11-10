@@ -6,6 +6,7 @@
 #include "messaging.h"
 #include "settings.h"
 #include "solarUtils.h"
+#include "status_bar.h"
 #include "text_metrics.h"
 #include "utils.h"
 #include "widgets.h"
@@ -16,7 +17,7 @@
 // Heartbeat timer: the watch requests data from the phone on this interval
 #define UPDATE_REQUEST_INTERVAL_MS (30 * 60 * 1000) // 30 minutes
 #define UPDATE_REQUEST_INITIAL_DELAY_MS (3 * 1000)   // 3 seconds after startup
-#define UPDATE_REQUEST_RETRY_MS (30 * 1000)          // fast retry after outbox fail
+#define UPDATE_REQUEST_RETRY_MS (30 * 1000)          // first retry after outbox fail
 
 // windows and layers
 static Window *mainWindow;
@@ -32,6 +33,13 @@ static char timeText[TIME_STR_LEN];
 
 // Heartbeat timer for requesting data updates from the phone
 static AppTimer *s_update_request_timer = NULL;
+
+// Retries back off (doubling up to the normal interval) so an unresponsive
+// phone doesn't wake the watch every 30 seconds all day
+static uint32_t s_retry_delay_ms = UPDATE_REQUEST_RETRY_MS;
+
+// When the phone last sent us data, so a reconnect knows if it's stale
+static time_t s_last_update_time = 0;
 
 // ============================================================
 // Slot descriptor — one per visible row in the layout
@@ -52,31 +60,44 @@ static char widgetTextUP[WIDGET_TEXT_LEN]; // upper primary
 static char widgetTextLP[WIDGET_TEXT_LEN]; // lower primary
 static char widgetTextLS[WIDGET_TEXT_LEN]; // lower secondary
 
-static void update_widget_text(void) {
-  if (globalSettings.widgetUpperSecondary[0] != '\0') {
-    widget_get_text(globalSettings.widgetUpperSecondary, widgetTextUS,
-                    WIDGET_TEXT_LEN);
+// Whether any slot shows heart rate; if not, heart rate events are ignored
+static bool s_widgets_use_hr = false;
+
+// Renders one slot into its buffer; returns true if the text changed
+static bool update_widget_slot(const char *format, char *buf) {
+  char text[WIDGET_TEXT_LEN];
+
+  if (format[0] != '\0') {
+    widget_get_text(format, text, WIDGET_TEXT_LEN);
   } else {
-    widgetTextUS[0] = '\0';
+    text[0] = '\0';
   }
-  if (globalSettings.widgetUpperPrimary[0] != '\0') {
-    widget_get_text(globalSettings.widgetUpperPrimary, widgetTextUP,
-                    WIDGET_TEXT_LEN);
-  } else {
-    widgetTextUP[0] = '\0';
+
+  if (strcmp(text, buf) == 0) {
+    return false;
   }
-  if (globalSettings.widgetLowerPrimary[0] != '\0') {
-    widget_get_text(globalSettings.widgetLowerPrimary, widgetTextLP,
-                    WIDGET_TEXT_LEN);
-  } else {
-    widgetTextLP[0] = '\0';
-  }
-  if (globalSettings.widgetLowerSecondary[0] != '\0') {
-    widget_get_text(globalSettings.widgetLowerSecondary, widgetTextLS,
-                    WIDGET_TEXT_LEN);
-  } else {
-    widgetTextLS[0] = '\0';
-  }
+
+  strcpy(buf, text);
+  return true;
+}
+
+// Returns true if any slot's text changed
+static bool update_widget_text(void) {
+  s_widgets_use_hr = strstr(globalSettings.widgetUpperSecondary, "{hr}") ||
+                     strstr(globalSettings.widgetUpperPrimary, "{hr}") ||
+                     strstr(globalSettings.widgetLowerPrimary, "{hr}") ||
+                     strstr(globalSettings.widgetLowerSecondary, "{hr}");
+
+  bool changed = false;
+  changed |= update_widget_slot(globalSettings.widgetUpperSecondary,
+                                widgetTextUS);
+  changed |=
+      update_widget_slot(globalSettings.widgetUpperPrimary, widgetTextUP);
+  changed |=
+      update_widget_slot(globalSettings.widgetLowerPrimary, widgetTextLP);
+  changed |= update_widget_slot(globalSettings.widgetLowerSecondary,
+                                widgetTextLS);
+  return changed;
 }
 
 static void draw_center_text(Layer *layer, GContext *ctx) {
@@ -272,10 +293,17 @@ static void update_clock() {
   // redraw solar ring layer
   layer_mark_dirty(ringLayer);
   layer_mark_dirty(centerLayer);
+
+  // quiet time can toggle between ticks
+  StatusBar_redraw();
 }
 
 // settings might have changed, so recalculate solar data and refresh screen
 void onSettingsChanged() {
+  // the phone answered, so stop backing off
+  s_retry_delay_ms = UPDATE_REQUEST_RETRY_MS;
+  s_last_update_time = time(NULL);
+
   solarUtils_recalculateSolarData();
 
   APP_LOG(APP_LOG_LEVEL_INFO, "I guess settings changed");
@@ -322,6 +350,9 @@ static void main_window_load(Window *window) {
   layer_set_update_proc(ringLayer, draw_ring_layer);
   layer_add_child(shiftingLayer, ringLayer);
 
+  // status icon sits in the top of the sun ring, above the ring layer
+  StatusBar_init(windowLayer);
+
   // subscribe to the unobstructed area events
   UnobstructedAreaHandlers handlers = {.change = onUnobstructedAreaChange,
                                        .did_change =
@@ -337,6 +368,7 @@ static void main_window_load(Window *window) {
 
 static void main_window_unload(Window *window) {
   // destroy everything
+  StatusBar_deinit();
   layer_destroy(ringLayer);
   layer_destroy(infoLayer);
   layer_destroy(centerLayer);
@@ -348,8 +380,11 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 
 #if defined(PBL_HEALTH)
 static void health_handler(HealthEventType event, void *context) {
-  if (event == HealthEventHeartRateUpdate) {
-    update_clock();
+  // heart rate updates come often during activity; only redraw if a widget
+  // shows it and the displayed value actually changed
+  if (event == HealthEventHeartRateUpdate && s_widgets_use_hr &&
+      update_widget_text()) {
+    layer_mark_dirty(infoLayer);
   }
 }
 #endif
@@ -364,6 +399,18 @@ static void schedule_next_update_request(uint32_t delay_ms) {
       app_timer_register(delay_ms, update_request_timer_callback, NULL);
 }
 
+static void bluetooth_handler(bool connected) {
+  StatusBar_redraw();
+
+  // requests are skipped while disconnected, so catch up on reconnect if the
+  // data is stale (but not on every blip of a flaky connection)
+  if (connected && time(NULL) - s_last_update_time >=
+                       UPDATE_REQUEST_INTERVAL_MS / 1000) {
+    s_retry_delay_ms = UPDATE_REQUEST_RETRY_MS;
+    schedule_next_update_request(UPDATE_REQUEST_INITIAL_DELAY_MS);
+  }
+}
+
 static void update_request_timer_callback(void *data) {
   // Schedule the next normal-interval tick *first*, so that a sync outbox
   // failure inside messaging_request_update() can call on_request_failed()
@@ -373,7 +420,12 @@ static void update_request_timer_callback(void *data) {
 }
 
 static void on_request_failed(void) {
-  schedule_next_update_request(UPDATE_REQUEST_RETRY_MS);
+  schedule_next_update_request(s_retry_delay_ms);
+
+  s_retry_delay_ms *= 2;
+  if (s_retry_delay_ms > UPDATE_REQUEST_INTERVAL_MS) {
+    s_retry_delay_ms = UPDATE_REQUEST_INTERVAL_MS;
+  }
 }
 
 static void init() {
@@ -407,6 +459,8 @@ static void init() {
   health_service_events_subscribe(health_handler, NULL);
 #endif
 
+  bluetooth_connection_service_subscribe(bluetooth_handler);
+
   // Schedule initial update request with short delay to give PKJS time to start
   schedule_next_update_request(UPDATE_REQUEST_INITIAL_DELAY_MS);
 }
@@ -418,6 +472,7 @@ static void deinit() {
 #if defined(PBL_HEALTH)
   health_service_events_unsubscribe();
 #endif
+  bluetooth_connection_service_unsubscribe();
   window_destroy(mainWindow);
 }
 

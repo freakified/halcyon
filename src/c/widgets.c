@@ -4,7 +4,7 @@
 #include "utils.h"
 #include <pebble.h>
 
-static void format_alt_time(char *buf, size_t buf_len, struct tm *alt_time) {
+static void format_short_time(char *buf, size_t buf_len, struct tm *alt_time) {
   if (clock_is_24h_style()) {
     strftime(buf, buf_len, "%H:%M", alt_time);
   } else {
@@ -27,7 +27,7 @@ static void get_alt_time_info(struct tm *local_time, struct tm *alt_time,
   time_t shifted =
       time(NULL) + ((int)utc_offset - (int)globalSettings.localUtcOffset) * 60;
   *alt_time = *localtime(&shifted);
-  format_alt_time(time_buf, time_buf_len, alt_time);
+  format_short_time(time_buf, time_buf_len, alt_time);
 
   uint8_t lang = globalSettings.language;
   if (lang >= LANGUAGE_COUNT) {
@@ -36,6 +36,26 @@ static void get_alt_time_info(struct tm *local_time, struct tm *alt_time,
   snprintf(day_buf, day_buf_len, "%s", dayNames[lang][alt_time->tm_wday]);
   *different_date = local_time->tm_year != alt_time->tm_year ||
                     local_time->tm_yday != alt_time->tm_yday;
+}
+
+// Next enabled alarm's time, with the day name appended if it isn't today
+static void render_alarm_token(struct tm *local_time, char *temp,
+                               size_t temp_len, uint8_t lang) {
+  time_t alarm_time;
+  if (!alarm_service_peek_next(&alarm_time)) {
+    snprintf(temp, temp_len, "--:--");
+    return;
+  }
+
+  struct tm alarm_tm = *localtime(&alarm_time);
+  format_short_time(temp, temp_len, &alarm_tm);
+
+  if (local_time->tm_year != alarm_tm.tm_year ||
+      local_time->tm_yday != alarm_tm.tm_yday) {
+    size_t len = strlen(temp);
+    snprintf(temp + len, temp_len - len, " %s",
+             dayNames[lang][alarm_tm.tm_wday]);
+  }
 }
 
 static void render_alt_time_token(const char *token, int token_len,
@@ -147,7 +167,11 @@ void widget_get_text(const char *format_string, char *buf, int buf_len) {
           snprintf(temp, sizeof(temp), "%02d", t->tm_mon + 1);
           matched = true;
         } else if (strncmp(token, "year", token_len) == 0 && token_len == 4) {
-          snprintf(temp, sizeof(temp), "%d", t->tm_year + 1900);
+          strftime(temp, sizeof(temp), "%Y", t);
+          matched = true;
+        } else if (strncmp(token, "year_short", token_len) == 0 &&
+                   token_len == 10) {
+          strftime(temp, sizeof(temp), "%y", t);
           matched = true;
         } else if (strncmp(token, "day_of_year", token_len) == 0 &&
                    token_len == 11) {
@@ -252,6 +276,10 @@ void widget_get_text(const char *format_string, char *buf, int buf_len) {
         } else if (strncmp(token, "batt", token_len) == 0 && token_len == 4) {
           BatteryChargeState state = battery_state_service_peek();
           snprintf(temp, sizeof(temp), "%d", state.charge_percent);
+          matched = true;
+        } else if (strncmp(token, "alarm", token_len) == 0 &&
+                   token_len == 5) {
+          render_alarm_token(t, temp, sizeof(temp), lang);
           matched = true;
         } else if (strncmp(token, "alt_tz", 6) == 0) {
           render_alt_time_token(

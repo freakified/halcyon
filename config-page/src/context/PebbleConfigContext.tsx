@@ -3,10 +3,15 @@ import { Settings, WatchInfo, Capabilities } from './types';
 import { evaluateCapabilities } from '../utils/capabilities';
 import { getDefaultSettings } from '../utils/defaultSettings';
 import { getManualSolarError } from '../utils/solarTimes';
+import { migrateLegacyCities } from '../data/legacyCities';
+import { matchThemeId, THEME_SELECTION_KEYS } from '../utils/themeUtils';
+import { THEME_KINDS } from '../utils/themeKinds';
+import { loadSavedThemes } from '../hooks/useSavedThemes';
 
 interface ConfigContextType {
   settings: Settings;
-  updateSetting: (key: string, value: any) => void;
+  updateSetting: (key: string, value: unknown) => void;
+  updateSettings: (partial: Record<string, unknown>) => void;
   resetToDefaults: () => void;
   save: () => void;
   /** Problem that blocks saving, if any */
@@ -56,22 +61,38 @@ export const PebbleConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const watchInfo = useMemo(() => parseWatchInfo(), []);
   const capabilities = useMemo(() => evaluateCapabilities(watchInfo), [watchInfo]);
 
+  // the theme selections aren't saved to the watch, so pick whichever
+  // theme of each kind the settings belong to
+  const withThemeSelections = (s: Settings): Settings => {
+    const selections: Partial<Settings> = {};
+    THEME_KINDS.forEach((kind) => {
+      selections[kind.selectionKey] = matchThemeId(kind, s, capabilities, loadSavedThemes(kind));
+    });
+    return { ...s, ...selections };
+  };
+
   const [settings, setSettings] = React.useState<Settings>(() => {
+    let loaded: Settings;
     try {
       const params = new URLSearchParams(window.location.search);
       const urlSettings = JSON.parse(params.get('settings') || '{}');
-      return { ...getDefaultSettings(capabilities), ...urlSettings };
+      loaded = { ...getDefaultSettings(capabilities), ...migrateLegacyCities(urlSettings) };
     } catch {
-      return getDefaultSettings(capabilities);
+      loaded = getDefaultSettings(capabilities);
     }
+    return withThemeSelections(loaded);
   });
 
-  const updateSetting = (key: string, value: any) => {
+  const updateSetting = (key: string, value: unknown) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
+  const updateSettings = (partial: Record<string, unknown>) => {
+    setSettings((prev) => ({ ...prev, ...partial }));
+  };
+
   const resetToDefaults = () => {
-    setSettings(getDefaultSettings(capabilities));
+    setSettings(withThemeSelections(getDefaultSettings(capabilities)));
   };
 
   const settingsError = getManualSolarError(settings);
@@ -80,12 +101,15 @@ export const PebbleConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (settingsError) return;
     const params = new URLSearchParams(window.location.search);
     const returnTo = params.get('return_to') || 'pebblejs://close#';
-    window.location.href = returnTo + encodeURIComponent(JSON.stringify(settings));
+    // Strip the theme selections, which are page state rather than watch settings
+    const watchSettings: Record<string, unknown> = { ...settings };
+    THEME_SELECTION_KEYS.forEach((key) => delete watchSettings[key]);
+    window.location.href = returnTo + encodeURIComponent(JSON.stringify(watchSettings));
   };
 
   return (
     <WatchInfoContext.Provider value={{ watchInfo, capabilities }}>
-      <ConfigContext.Provider value={{ settings, updateSetting, resetToDefaults, save, settingsError }}>
+      <ConfigContext.Provider value={{ settings, updateSetting, updateSettings, resetToDefaults, save, settingsError }}>
         {children}
       </ConfigContext.Provider>
     </WatchInfoContext.Provider>
