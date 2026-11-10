@@ -12,6 +12,7 @@ import {
   DonationLink,
   AltTimezoneSection,
   LocationSection,
+  SolarTimesSection,
   Icon,
   ICONS,
 } from '../components';
@@ -260,6 +261,8 @@ export const SettingsPage: React.FC = () => {
       )}
 
       <LocationSection />
+
+      <SolarTimesSection />
 
       {weatherWidgetSelected && (
         <Section title="Weather">

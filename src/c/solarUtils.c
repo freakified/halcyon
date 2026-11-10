@@ -40,6 +40,13 @@ void solarUtils_recalculateSolarData() {
 }
 
 bool isNightTime(int currentMinutes) {
-  return (currentMinutes >= currentSolarInfo.sunsetMinute ||
-          currentMinutes <  currentSolarInfo.sunriseMinute);
+  int sunrise = currentSolarInfo.sunriseMinute;
+  int sunset = currentSolarInfo.sunsetMinute;
+
+  // Sunset can come before sunrise (manual times, or a manual location far
+  // from the phone's time zone), in which case daytime wraps past midnight.
+  if (sunrise <= sunset) {
+    return currentMinutes >= sunset || currentMinutes < sunrise;
+  }
+  return currentMinutes >= sunset && currentMinutes < sunrise;
 }

@@ -54,4 +54,7 @@ export const getDefaultSettings = (capabilities: Capabilities): Settings => ({
   SETTING_MANUAL_LOCATION_NAME: '',
   SETTING_MANUAL_LAT: 0,
   SETTING_MANUAL_LNG: 0,
+  SETTING_USE_MANUAL_SOLAR_TIMES: 0,
+  SETTING_MANUAL_SUNRISE_MINUTE: 6 * 60,
+  SETTING_MANUAL_SUNSET_MINUTE: 18 * 60,
 });

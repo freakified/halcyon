@@ -21,7 +21,9 @@ var PHONE_ONLY_SETTING_KEYS = [
   'SETTING_ALT_ZONE', 'SETTING_ALT_LABEL',
   'SETTING_ALT_ZONE2', 'SETTING_ALT_LABEL2',
   'SETTING_USE_GPS_LOCATION', 'SETTING_MANUAL_LOCATION_NAME',
-  'SETTING_MANUAL_LAT', 'SETTING_MANUAL_LNG'
+  'SETTING_MANUAL_LAT', 'SETTING_MANUAL_LNG',
+  'SETTING_USE_MANUAL_SOLAR_TIMES', 'SETTING_MANUAL_SUNRISE_MINUTE',
+  'SETTING_MANUAL_SUNSET_MINUTE'
 ];
 
 function restoreIs24h() {
@@ -133,6 +135,33 @@ function getNextSolarEvent(solar, use24h, labels) {
     time: time,
     text: label + ' ' + time
   };
+}
+
+// Matches the watch's DEFAULT_SUNRISE_TIME / DEFAULT_SUNSET_TIME
+var DEFAULT_SOLAR = { sunriseMinute: 6 * 60, sunsetMinute: 18 * 60 };
+
+function isMinuteOfDay(value) {
+  return typeof value === 'number' && value >= 0 && value < 24 * 60;
+}
+
+// Manual times are opt-in: only an explicit 1 from the config toggle turns
+// them on, so missing or unexpected values always mean "off".
+function usesManualSolar(settings) {
+  return !!settings && settings.SETTING_USE_MANUAL_SOLAR_TIMES === 1 &&
+    isMinuteOfDay(settings.SETTING_MANUAL_SUNRISE_MINUTE) &&
+    isMinuteOfDay(settings.SETTING_MANUAL_SUNSET_MINUTE);
+}
+
+// Returns the user's fixed sunrise/sunset when they've set them manually,
+// otherwise the times last calculated for the current location.
+function getSolar(settings) {
+  if (usesManualSolar(settings)) {
+    return {
+      sunriseMinute: settings.SETTING_MANUAL_SUNRISE_MINUTE,
+      sunsetMinute: settings.SETTING_MANUAL_SUNSET_MINUTE
+    };
+  }
+  return cachedSolar;
 }
 
 // ---- Alternate time zones ----
@@ -256,6 +285,7 @@ function sendDataToWatch() {
   var lang = settings.SETTING_LANGUAGE || 0;
   var use24h = cachedIs24h;
   var weather = Weather.isDisplayable(cachedWeather) ? cachedWeather : null;
+  var solar = getSolar(settings);
   var defaultWidgets = getDefaultWidgets();
 
   if (cachedWeather && !weather) {
@@ -273,7 +303,7 @@ function sendDataToWatch() {
     }
     if (fmt !== undefined && fmt !== null) {
       // Apply JS tokens; C tokens pass through untouched
-      var processed = applyJsTokens(fmt, weather, cachedSolar, isImperial, use24h, lang);
+      var processed = applyJsTokens(fmt, weather, solar, isImperial, use24h, lang);
       msg[key] = processed;
     }
   });
@@ -286,9 +316,9 @@ function sendDataToWatch() {
   msg.LOCAL_UTC_OFFSET = -new Date().getTimezoneOffset();
 
   // Send solar minutes for the ring
-  if (cachedSolar) {
-    msg['WEATHER_SUNRISE_MINUTE'] = cachedSolar.sunriseMinute;
-    msg['WEATHER_SUNSET_MINUTE'] = cachedSolar.sunsetMinute;
+  if (solar) {
+    msg['WEATHER_SUNRISE_MINUTE'] = solar.sunriseMinute;
+    msg['WEATHER_SUNSET_MINUTE'] = solar.sunsetMinute;
   }
 
   // Send temp unit setting
@@ -525,6 +555,14 @@ Pebble.addEventListener('webviewclosed', function (e) {
   migrateAltZones(configData);
 
   var locationChanged = getLocationKey(cachedSettings) !== getLocationKey(configData);
+  var manualSolarTurnedOff = usesManualSolar(cachedSettings) && !usesManualSolar(configData);
+
+  // The watch keeps the last times it was sent. If manual times were just
+  // turned off and none have been calculated yet, send the watch's defaults
+  // so the manual times don't linger until a location fix comes in.
+  if (manualSolarTurnedOff && !cachedSolar) {
+    cachedSolar = DEFAULT_SOLAR;
+  }
 
   // Save to localStorage for persistence
   localStorage.setItem('halcyonSettings', JSON.stringify(configData));

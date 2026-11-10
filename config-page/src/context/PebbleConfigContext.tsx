@@ -2,6 +2,7 @@ import React, { createContext, useContext, useMemo } from 'react';
 import { Settings, WatchInfo, Capabilities } from './types';
 import { evaluateCapabilities } from '../utils/capabilities';
 import { getDefaultSettings } from '../utils/defaultSettings';
+import { getManualSolarError } from '../utils/solarTimes';
 import { migrateLegacyCities } from '../data/legacyCities';
 import { matchThemeId, THEME_SELECTION_KEYS } from '../utils/themeUtils';
 import { THEME_KINDS } from '../utils/themeKinds';
@@ -13,6 +14,8 @@ interface ConfigContextType {
   updateSettings: (partial: Record<string, unknown>) => void;
   resetToDefaults: () => void;
   save: () => void;
+  /** Problem that blocks saving, if any */
+  settingsError: string | null;
 }
 
 interface WatchInfoContextType {
@@ -92,7 +95,10 @@ export const PebbleConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setSettings(withThemeSelections(getDefaultSettings(capabilities)));
   };
 
+  const settingsError = getManualSolarError(settings);
+
   const save = () => {
+    if (settingsError) return;
     const params = new URLSearchParams(window.location.search);
     const returnTo = params.get('return_to') || 'pebblejs://close#';
     // Strip the theme selections, which are page state rather than watch settings
@@ -103,7 +109,7 @@ export const PebbleConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   return (
     <WatchInfoContext.Provider value={{ watchInfo, capabilities }}>
-      <ConfigContext.Provider value={{ settings, updateSetting, updateSettings, resetToDefaults, save }}>
+      <ConfigContext.Provider value={{ settings, updateSetting, updateSettings, resetToDefaults, save, settingsError }}>
         {children}
       </ConfigContext.Provider>
     </WatchInfoContext.Provider>
