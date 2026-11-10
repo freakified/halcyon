@@ -47,7 +47,7 @@
 #define DEFAULT_SUBTEXT_SECONDARY_COLOR GColorBlack
 #define DEFAULT_BG_COLOR GColorWhite
 #define DEFAULT_PIP_COLOR_PRIMARY GColorBlack
-#define DEFAULT_PIP_COLOR_SECONDARY GColorBlack
+#define DEFAULT_PIP_COLOR_SECONDARY GColorLightGray
 #define DEFAULT_RING_STROKE_COLOR GColorBlack
 #define DEFAULT_RING_NIGHT_COLOR GColorBlack
 #define DEFAULT_RING_DAY_COLOR GColorWhite
@@ -63,7 +63,7 @@
 #define DEFAULT_NIGHT_SUBTEXT_SECONDARY_COLOR GColorWhite
 #define DEFAULT_NIGHT_BG_COLOR GColorBlack
 #define DEFAULT_NIGHT_PIP_COLOR_PRIMARY GColorWhite
-#define DEFAULT_NIGHT_PIP_COLOR_SECONDARY GColorWhite
+#define DEFAULT_NIGHT_PIP_COLOR_SECONDARY GColorLightGray
 #define DEFAULT_NIGHT_RING_STROKE_COLOR GColorBlack
 #define DEFAULT_NIGHT_RING_NIGHT_COLOR GColorBlack
 #define DEFAULT_NIGHT_RING_DAY_COLOR GColorWhite
@@ -160,6 +160,8 @@ typedef struct {
   int16_t altCity2UtcOffset;
   int16_t localUtcOffset;
   bool usePrimaryFontForAllWidgets;
+  bool enableStatusBar;
+  bool statusShowConnection; // show "connected" icon even when connected
   bool showNextAlarm;
   GColor alarmColor;
   GColor nightAlarmColor;
@@ -222,6 +224,8 @@ typedef struct {
   int16_t altCity2UtcOffset;
   int16_t localUtcOffset;
   bool usePrimaryFontForAllWidgets;
+  bool enableStatusBar;
+  bool statusShowConnection; // show "connected" icon even when connected
   // older versions saved this byte as zeroed padding, so only a setting that
   // defaults to 0 can go here
   uint8_t reserved;

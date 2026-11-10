@@ -5,7 +5,8 @@ var configLocalUri = 'http://192.168.11.9:3000/index.html';
 var SunCalc = require('./suncalc');
 var Weather = require('./weather');
 var Languages = require('./languages');
-var Cities = require('./cities');
+var Timezone = require('./timezone');
+var LegacyCities = require('./legacy_cities');
 
 // Cached data (in-memory; also persisted to localStorage)
 var cachedWeather = null;
@@ -13,14 +14,12 @@ var cachedSolar = null;
 var cachedSettings = null;
 
 var TIME_FORMAT_STORAGE_KEY = 'halcyonIs24h';
-var DEFAULT_ALT_CITY = 'TOKYO';
-var DEFAULT_ALT_CITY2 = 'UTC';
 var ALT_LABEL_MAX_LENGTH = 6;
 
 // Settings only used by the phone; never sent to the watch.
 var PHONE_ONLY_SETTING_KEYS = [
-  'SETTING_ALT_CITY', 'SETTING_ALT_LABEL',
-  'SETTING_ALT_CITY2', 'SETTING_ALT_LABEL2',
+  'SETTING_ALT_ZONE', 'SETTING_ALT_LABEL',
+  'SETTING_ALT_ZONE2', 'SETTING_ALT_LABEL2',
   'SETTING_USE_GPS_LOCATION', 'SETTING_MANUAL_LOCATION_NAME',
   'SETTING_MANUAL_LAT', 'SETTING_MANUAL_LNG'
 ];
@@ -136,20 +135,42 @@ function getNextSolarEvent(solar, use24h, labels) {
   };
 }
 
-function getSelectedAltCity(settings, key, fallback) {
-  var cityName = settings[key] || fallback;
-  return Cities.findCity(cityName) || Cities.findCity('UTC');
+// ---- Alternate time zones ----
+//
+// The phone owns the zone choice: any IANA zone id, e.g. "America/New_York".
+// The watch only ever sees a label and the zone's *current* UTC offset, so
+// recomputing the offset every time we talk to the watch is what keeps it
+// correct across DST changes.
+
+// the label a zone gets until the user types their own: the first three
+// letters of its city ("America/New_York" -> "NEW"). Must match
+// defaultAltLabel() in config-page/src/data/timeZones.ts.
+function defaultAltLabel(zone) {
+  return zone.split('/').pop().replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase();
 }
 
-function applyAltCityMessage(msg, settings, cityKey, labelKey, messageLabelKey, messageOffsetKey, fallbackCity) {
-  var now = new Date();
-  var city = getSelectedAltCity(settings || {}, cityKey, fallbackCity);
-  if (!city) return;
+// Converts settings saved before zones replaced cities. Returns true if
+// anything changed.
+function migrateAltZones(settings) {
+  var changed = LegacyCities.migrate(settings, 'SETTING_ALT_CITY', 'SETTING_ALT_ZONE', 'SETTING_ALT_LABEL');
+  return LegacyCities.migrate(settings, 'SETTING_ALT_CITY2', 'SETTING_ALT_ZONE2', 'SETTING_ALT_LABEL2') || changed;
+}
 
-  var label = settings[labelKey] || city.label || city.name;
+function applyAltZoneMessage(msg, settings, zoneKey, labelKey, messageLabelKey, messageOffsetKey) {
+  // No zone saved (never configured, or settings lost with the phone): send
+  // nothing, and the watch keeps the label and offset it already has.
+  var zone = settings[zoneKey];
+  if (!zone) return;
+
+  var label = settings[labelKey] || defaultAltLabel(zone);
   msg[messageLabelKey] = String(label).toUpperCase().slice(0, ALT_LABEL_MAX_LENGTH);
-  msg[messageOffsetKey] = Cities.cityOffsetMinutes(city, now);
-  msg.LOCAL_UTC_OFFSET = -now.getTimezoneOffset();
+
+  // Without Intl (the emulator) the offset is left out, and the watch keeps
+  // whichever one it last had.
+  var offset = Timezone.offsetMinutes(zone, new Date());
+  if (offset !== null) {
+    msg[messageOffsetKey] = offset;
+  }
 }
 
 // ---- Pass 1: token substitution ----
@@ -257,10 +278,12 @@ function sendDataToWatch() {
     }
   });
 
-  applyAltCityMessage(msg, settings, 'SETTING_ALT_CITY', 'SETTING_ALT_LABEL',
-    'SETTING_ALT_CITY_LABEL', 'ALT_CITY_UTC_OFFSET', DEFAULT_ALT_CITY);
-  applyAltCityMessage(msg, settings, 'SETTING_ALT_CITY2', 'SETTING_ALT_LABEL2',
-    'SETTING_ALT_CITY2_LABEL', 'ALT_CITY2_UTC_OFFSET', DEFAULT_ALT_CITY2);
+  applyAltZoneMessage(msg, settings, 'SETTING_ALT_ZONE', 'SETTING_ALT_LABEL',
+    'SETTING_ALT_CITY_LABEL', 'ALT_CITY_UTC_OFFSET');
+  applyAltZoneMessage(msg, settings, 'SETTING_ALT_ZONE2', 'SETTING_ALT_LABEL2',
+    'SETTING_ALT_CITY2_LABEL', 'ALT_CITY2_UTC_OFFSET');
+  // The watch shifts its own clock by (zone offset - local offset)
+  msg.LOCAL_UTC_OFFSET = -new Date().getTimezoneOffset();
 
   // Send solar minutes for the ring
   if (cachedSolar) {
@@ -316,6 +339,9 @@ function resetBackoff() {
 
 function locationError(err) {
   console.log('Location error: ' + err.message);
+  // Still send what we have: alternate time zone offsets don't depend on
+  // location, and must keep up with DST changes
+  sendDataToWatch();
   scheduleRetry('geolocation: ' + err.message);
 }
 
@@ -406,6 +432,10 @@ Pebble.addEventListener('ready', function (e) {
   if (savedSettings) {
     try { cachedSettings = JSON.parse(savedSettings); } catch (e) { }
   }
+  if (migrateAltZones(cachedSettings)) {
+    console.log('Migrated alternate time zone settings');
+    localStorage.setItem('halcyonSettings', JSON.stringify(cachedSettings));
+  }
 
   // If we have cached data, send it immediately so the watch has something
   // (uses defaults if no settings configured yet)
@@ -489,6 +519,10 @@ Pebble.addEventListener('webviewclosed', function (e) {
   if (configData.return_to) {
     delete configData.return_to;
   }
+
+  // Config pages send old city names too (for apps that predate zones, or
+  // in place of zones from a page that does): convert or drop them
+  migrateAltZones(configData);
 
   var locationChanged = getLocationKey(cachedSettings) !== getLocationKey(configData);
 

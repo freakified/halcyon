@@ -18,6 +18,9 @@ static void populateStoredSettingsExtra(StoredSettingsExtra *storedSettingsExtra
   storedSettingsExtra->localUtcOffset = globalSettings.localUtcOffset;
   storedSettingsExtra->usePrimaryFontForAllWidgets =
       globalSettings.usePrimaryFontForAllWidgets;
+  storedSettingsExtra->enableStatusBar = globalSettings.enableStatusBar;
+  storedSettingsExtra->statusShowConnection =
+      globalSettings.statusShowConnection;
   storedSettingsExtra->showNextAlarm = globalSettings.showNextAlarm;
   storedSettingsExtra->alarmColor = globalSettings.alarmColor;
   storedSettingsExtra->nightAlarmColor = globalSettings.nightAlarmColor;
@@ -96,6 +99,8 @@ void Settings_loadFromStorage() {
   globalSettings.altCity2UtcOffset = 0;
   globalSettings.localUtcOffset = 0;
   globalSettings.usePrimaryFontForAllWidgets = false;
+  globalSettings.enableStatusBar = true;
+  globalSettings.statusShowConnection = false;
   globalSettings.showNextAlarm = true;
 
   if (persist_exists(SETTINGS_PERSIST_KEY)) {
@@ -133,6 +138,9 @@ void Settings_loadFromStorage() {
       globalSettings.localUtcOffset = storedSettingsExtra.localUtcOffset;
       globalSettings.usePrimaryFontForAllWidgets =
           storedSettingsExtra.usePrimaryFontForAllWidgets;
+      globalSettings.enableStatusBar = storedSettingsExtra.enableStatusBar;
+      globalSettings.statusShowConnection =
+          storedSettingsExtra.statusShowConnection;
       globalSettings.showNextAlarm = storedSettingsExtra.showNextAlarm;
       globalSettings.alarmColor = storedSettingsExtra.alarmColor;
       globalSettings.nightAlarmColor = storedSettingsExtra.nightAlarmColor;
@@ -191,10 +199,6 @@ ColorTheme getCurrentColorTheme() {
   int currentMinutes = timeInfo->tm_hour * 60 + timeInfo->tm_min;
 
   bool useNight = globalSettings.useNightTheme && isNightTime(currentMinutes);
-
-  APP_LOG(APP_LOG_LEVEL_DEBUG,
-          "getCurrentColorTheme: useNightTheme=%d, useNight=%d",
-          globalSettings.useNightTheme, useNight);
 
   if (useNight) {
     theme.timeColor = globalSettings.nightTimeColor;

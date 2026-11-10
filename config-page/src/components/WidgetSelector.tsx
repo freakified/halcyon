@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, Dialog, Heading, Modal, ModalOverlay } from 'react-aria-components';
 import { WatchPreview } from './WatchPreview';
 import { useCapabilities, useConfig } from '../context/PebbleConfigContext';
-import { getWidgetOptions, WidgetOption, WIDGET_TOKENS, WidgetToken } from '../data/widgetTypes';
+import { getWidgetOptions, getWidgetTokens, WidgetOption, WidgetToken } from '../data/widgetTypes';
 import { renderPreview } from '../data/i18nPreview';
 
 type WidgetSettingKey =
@@ -37,13 +37,6 @@ const groupTokens = (tokens: WidgetToken[]) => {
     });
     return groups;
 };
-
-const getVisibleTokens = (hasHealth: boolean, hasHrm: boolean) =>
-    WIDGET_TOKENS.filter((token) => {
-        if (token.requires === 'health') return hasHealth;
-        if (token.requires === 'hrm') return hasHrm;
-        return true;
-    });
 
 interface WidgetSlotControlProps {
     label: string;
@@ -286,7 +279,7 @@ const WidgetSlotControl: React.FC<WidgetSlotControlProps> = ({
     );
 };
 
-export const WidgetSelector: React.FC = () => {
+export const WidgetSelector: React.FC<{ showPreview?: boolean }> = ({ showPreview = true }) => {
     const capabilities = useCapabilities();
     const { settings } = useConfig();
     const lang = Number(settings.SETTING_LANGUAGE) || 0;
@@ -295,19 +288,18 @@ export const WidgetSelector: React.FC = () => {
     const altLabel2 = String(settings.SETTING_ALT_LABEL2 || 'UTC');
     const isRound = capabilities.ROUND && !capabilities.RECT;
     const widgetOptions = React.useMemo(
-        () => getWidgetOptions(lang, !!capabilities.HEALTH, !!capabilities.HRM, isImperial, altLabel, altLabel2),
-        [lang, capabilities.HEALTH, capabilities.HRM, isImperial, altLabel, altLabel2],
+        () => getWidgetOptions(lang, capabilities, isImperial, altLabel, altLabel2),
+        [lang, capabilities, isImperial, altLabel, altLabel2],
     );
-    const widgetTokens = React.useMemo(
-        () => getVisibleTokens(!!capabilities.HEALTH, !!capabilities.HRM),
-        [capabilities.HEALTH, capabilities.HRM],
-    );
+    const widgetTokens = React.useMemo(() => getWidgetTokens(capabilities), [capabilities]);
 
     return (
         <div className="widget-selector-container">
-            <div className={`widget-selector-preview ${isRound ? 'round' : 'rect'}`}>
-                <WatchPreview />
-            </div>
+            {showPreview && (
+                <div className={`widget-selector-preview ${isRound ? 'round' : 'rect'}`}>
+                    <WatchPreview />
+                </div>
+            )}
             <div className="widget-selector-controls">
                 <WidgetSlotControl
                     label="Upper text 2"

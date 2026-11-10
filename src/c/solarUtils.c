@@ -13,6 +13,12 @@ void solarUtils_init() {
 }
 
 void solarUtils_setSolarMinutes(int sunrise, int sunset) {
+  // skip the flash write when the times haven't moved
+  if (currentSolarInfo.sunriseMinute == sunrise &&
+      currentSolarInfo.sunsetMinute == sunset) {
+    return;
+  }
+
   currentSolarInfo.sunriseMinute = sunrise;
   currentSolarInfo.sunsetMinute = sunset;
   persist_write_data(SOLAR_DATA_KEY, &currentSolarInfo, sizeof(SolarInfo));
@@ -34,13 +40,6 @@ void solarUtils_recalculateSolarData() {
 }
 
 bool isNightTime(int currentMinutes) {
-  bool result = (currentMinutes >= currentSolarInfo.sunsetMinute ||
-                 currentMinutes <  currentSolarInfo.sunriseMinute);
-
-  APP_LOG(APP_LOG_LEVEL_DEBUG,
-          "isNightTime: current=%d, sunrise=%d, sunset=%d, result=%d",
-          currentMinutes, currentSolarInfo.sunriseMinute,
-          currentSolarInfo.sunsetMinute, result);
-
-  return result;
+  return (currentMinutes >= currentSolarInfo.sunsetMinute ||
+          currentMinutes <  currentSolarInfo.sunriseMinute);
 }

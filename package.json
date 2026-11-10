@@ -1,11 +1,12 @@
 {
   "name": "halcyon-pebble",
   "author": "Freakified",
-  "version": "2.4.0",
+  "version": "2.5.3",
   "keywords": [
     "pebble-watchface"
   ],
   "private": true,
+  "packageManager": "pnpm@12.15.0",
   "scripts": {
     "check:i18n": "node scripts/check-languages.js"
   },
@@ -85,6 +86,8 @@
       "REQUEST_UPDATE",
       "WATCH_IS_24H",
       "SETTING_USE_PRIMARY_WIDGET_FONT",
+      "SETTING_STATUS_BAR_ENABLED",
+      "SETTING_STATUS_SHOW_CONNECTION",
       "SETTING_SHOW_NEXT_ALARM",
       "SETTING_ALARM_COLOR",
       "SETTING_NIGHT_ALARM_COLOR"
@@ -95,6 +98,21 @@
           "file": "images/menuicon.png",
           "menuIcon": true,
           "name": "MENU_ICON",
+          "type": "bitmap"
+        },
+        {
+          "file": "images/status-dnd.png",
+          "name": "STATUS_DND",
+          "type": "bitmap"
+        },
+        {
+          "file": "images/status-connected.png",
+          "name": "STATUS_CONNECTED",
+          "type": "bitmap"
+        },
+        {
+          "file": "images/status-disconnected.png",
+          "name": "STATUS_DISCONNECTED",
           "type": "bitmap"
         }
       ]

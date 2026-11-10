@@ -24,23 +24,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: config-page/package.json
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
-          cache-dependency-path: config-page/package-lock.json
+          cache: pnpm
+          cache-dependency-path: config-page/pnpm-lock.yaml
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
       - name: Install dependencies
         working-directory: ./config-page
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Build with base path
         working-directory: ./config-page
-        run: npx vite build
+        run: pnpm exec vite build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
