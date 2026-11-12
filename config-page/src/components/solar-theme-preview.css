@@ -1,0 +1,13 @@
+.solar-preview { display: flex; align-items: center; gap: 24px; padding: 20px; flex-wrap: wrap; }
+.solar-preview > svg { flex: 0 0 260px; max-width: 100%; height: auto; }
+.solar-controls { flex: 1 1 230px; min-width: 0; }
+.solar-controls > label { display: flex; justify-content: space-between; }
+.solar-controls input[type=range] { width: 100%; margin: 16px 0; accent-color: #c34b16; }
+.solar-jumps { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.solar-jumps button { background: white; border: 1px solid #bbb; border-radius: 8px; padding: 10px 14px; min-height: 44px; cursor: pointer; color: #333; }
+.solar-jumps button:hover { background: #fff0e7; }
+.solar-times { display: flex; flex-wrap: wrap; gap: 16px; }
+.solar-times label { display: flex; flex-direction: column; gap: 8px; }
+.solar-times input { padding: 8px; min-height: 44px; border: 1px solid #bbb; border-radius: 6px; }
+.solar-note { padding: 0 20px 16px; margin: 0; color: #555; line-height: 1.5; }
+.solar-details > summary { padding: 16px 20px; cursor: pointer; }

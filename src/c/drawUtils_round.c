@@ -15,6 +15,9 @@ void draw_center_layer(Layer *layer, GContext *ctx) {
   // Draw the background circle
   graphics_fill_radial(ctx, bounds, GOvalScaleModeFitCircle, bounds.size.w / 2,
                        0, TRIG_MAX_ANGLE);
+#ifdef PBL_COLOR
+  draw_solar_background(layer, ctx, &currentTheme);
+#endif
 
   // Parameters for pips
   int numPips = 24;        // Number of pips (adjust as needed)

@@ -1,5 +1,6 @@
 #pragma once
 #include "widgets.h"
+#include "solar_theme.h"
 #include <pebble.h>
 #include <sys/syslimits.h>
 
@@ -8,6 +9,8 @@
 #define SETTINGS_PERSIST_KEY 2
 #define SETTINGS_EXTRA_PERSIST_KEY 3
 #define ALT_CITY_LABEL_LEN 20
+// Separate key preserves the existing persisted struct layouts.
+#define SETTINGS_DYNAMIC_SOLAR_KEY 4
 
 // default settings
 #ifdef PBL_COLOR
@@ -101,6 +104,9 @@ typedef struct {
   GColor ringSunsetColor;
   GColor sunStrokeColor;
   GColor sunFillColor;
+#ifdef PBL_COLOR
+  SolarThemeState solar; // transient rendering state, never persisted
+#endif
 } ColorTheme;
 
 typedef struct {
@@ -157,6 +163,7 @@ typedef struct {
   bool usePrimaryFontForAllWidgets;
   bool enableStatusBar;
   bool statusShowConnection; // show "connected" icon even when connected
+  bool dynamicSolarTheme; // opt-in; stored independently
 } Settings;
 
 typedef struct {
@@ -228,6 +235,7 @@ typedef char StoredSettingsExtra_must_fit_in_persist_data
 extern Settings globalSettings;
 
 ColorTheme getCurrentColorTheme();
+GColor getSolarBackgroundColor(const ColorTheme *theme, int radius);
 
 void Settings_init();
 void Settings_deinit();

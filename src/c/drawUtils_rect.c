@@ -177,6 +177,9 @@ void draw_center_layer(Layer *layer, GContext *ctx) {
   graphics_context_set_fill_color(ctx, currentTheme.bgColor);
 
   graphics_fill_rect(ctx, bounds, 0, GCornerNone);
+#ifdef PBL_COLOR
+  draw_solar_background(layer, ctx, &currentTheme);
+#endif
 
   // the pip rect spans from the first to the last pixel of the layer
   GRect pipRect = GRect(0, 0, bounds.size.w - 1, bounds.size.h - 1);

@@ -3,12 +3,14 @@ import { Settings, WatchInfo, Capabilities } from './types';
 import { evaluateCapabilities } from '../utils/capabilities';
 import { getDefaultSettings } from '../utils/defaultSettings';
 import { migrateLegacyCities } from '../data/legacyCities';
-import { matchThemeId, THEME_SELECTION_KEYS } from '../utils/themeUtils';
+import { matchThemeId } from '../utils/themeUtils';
+import { supportsSolarThemes, settingsForWatch } from '../utils/watchSettings';
 import { THEME_KINDS } from '../utils/themeKinds';
 import { loadSavedThemes } from '../hooks/useSavedThemes';
 
 interface ConfigContextType {
   settings: Settings;
+  solarThemesSupported: boolean;
   updateSetting: (key: string, value: unknown) => void;
   updateSettings: (partial: Record<string, unknown>) => void;
   resetToDefaults: () => void;
@@ -57,6 +59,7 @@ const parseWatchInfo = (): WatchInfo | null => {
 export const PebbleConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const watchInfo = useMemo(() => parseWatchInfo(), []);
   const capabilities = useMemo(() => evaluateCapabilities(watchInfo), [watchInfo]);
+  const solarThemesSupported = useMemo(() => supportsSolarThemes(window.location.search), []);
 
   // the theme selections aren't saved to the watch, so pick whichever
   // theme of each kind the settings belong to
@@ -95,15 +98,13 @@ export const PebbleConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const save = () => {
     const params = new URLSearchParams(window.location.search);
     const returnTo = params.get('return_to') || 'pebblejs://close#';
-    // Strip the theme selections, which are page state rather than watch settings
-    const watchSettings: Record<string, unknown> = { ...settings };
-    THEME_SELECTION_KEYS.forEach((key) => delete watchSettings[key]);
+    const watchSettings = settingsForWatch(settings, solarThemesSupported);
     window.location.href = returnTo + encodeURIComponent(JSON.stringify(watchSettings));
   };
 
   return (
     <WatchInfoContext.Provider value={{ watchInfo, capabilities }}>
-      <ConfigContext.Provider value={{ settings, updateSetting, updateSettings, resetToDefaults, save }}>
+      <ConfigContext.Provider value={{ settings, solarThemesSupported, updateSetting, updateSettings, resetToDefaults, save }}>
         {children}
       </ConfigContext.Provider>
     </WatchInfoContext.Provider>

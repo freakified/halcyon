@@ -104,12 +104,7 @@ static void draw_center_text(Layer *layer, GContext *ctx) {
   GRect bounds = layer_get_bounds(layer);
   bool useLargeFont = globalSettings.useLargeFonts;
 
-  bool useNightColors = false;
-  if (globalSettings.useNightTheme) {
-    struct tm *timeInfo = getCurrentTime();
-    int currentMinutes = timeInfo->tm_hour * 60 + timeInfo->tm_min;
-    useNightColors = isNightTime(currentMinutes);
-  }
+  ColorTheme theme = getCurrentColorTheme();
 
   // ---- Font selection ----
   GFont time_font = fonts_get_system_font(FONT_TIME);
@@ -131,13 +126,9 @@ static void draw_center_text(Layer *layer, GContext *ctx) {
                                       : FONT_WIDGET_SECONDARY_OFFSET;
 
   // ---- Color selection ----
-  GColor timeColor =
-      useNightColors ? globalSettings.nightTimeColor : globalSettings.timeColor;
-  GColor primaryColor = useNightColors ? globalSettings.nightSubtextPrimaryColor
-                                       : globalSettings.subtextPrimaryColor;
-  GColor secondaryColor = useNightColors
-                              ? globalSettings.nightSubtextSecondaryColor
-                              : globalSettings.subtextSecondaryColor;
+  GColor timeColor = theme.timeColor;
+  GColor primaryColor = theme.subtextPrimaryColor;
+  GColor secondaryColor = theme.subtextSecondaryColor;
 
   // ---- Build ordered slot list (top to bottom) ----
   // We use a fixed-size array and fill only active (non-empty) slots.
@@ -213,9 +204,32 @@ static void draw_center_text(Layer *layer, GContext *ctx) {
   // ---- Draw each slot ----
   for (int i = 0; i < num_slots; i++) {
     SlotDescriptor *s = &slots[i];
+    GRect text_bounds = GRect(0, y - s->offset, bounds.size.w, s->height);
+#ifdef PBL_COLOR
+    if (theme.solar.event &&
+        !gcolor_equal(globalSettings.bgColor, globalSettings.nightBgColor)) {
+      // A stationary two-pixel halo separates glyphs from the dither texture.
+      // A diamond footprint avoids heavy square corners; original fill goes last.
+      GColor outline = {.argb = solar_theme_readable(globalSettings.bgColor.argb,
+          globalSettings.nightBgColor.argb, s->color.argb)};
+      static const GPoint offsets[] = {
+        {0, -2}, {-1, -1}, {0, -1}, {1, -1},
+        {-2, 0}, {-1, 0}, {1, 0}, {2, 0},
+        {-1, 1}, {0, 1}, {1, 1}, {0, 2}
+      };
+      graphics_context_set_text_color(ctx, outline);
+      for (unsigned int j = 0; j < ARRAY_LENGTH(offsets); j++) {
+        GRect halo_bounds = text_bounds;
+        halo_bounds.origin.x += offsets[j].x;
+        halo_bounds.origin.y += offsets[j].y;
+        graphics_draw_text(ctx, s->text, s->font, halo_bounds,
+                           GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter,
+                           NULL);
+      }
+    }
+#endif
     graphics_context_set_text_color(ctx, s->color);
-    graphics_draw_text(ctx, s->text, s->font,
-                       GRect(0, y - s->offset, bounds.size.w, s->height),
+    graphics_draw_text(ctx, s->text, s->font, text_bounds,
                        GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter,
                        NULL);
     y += s->height + LINE_PADDING;
@@ -252,7 +266,6 @@ static void quickViewLayerReposition() {
   // Mark everything as dirty to redraw
   layer_mark_dirty(ringLayer);
   layer_mark_dirty(centerLayer);
-  layer_mark_dirty(infoLayer);
 }
 
 static void update_clock() {
@@ -293,6 +306,7 @@ static void update_clock() {
   // redraw solar ring layer
   layer_mark_dirty(ringLayer);
   layer_mark_dirty(centerLayer);
+  layer_mark_dirty(infoLayer);
 
   // quiet time can toggle between ticks
   StatusBar_redraw();
@@ -369,6 +383,9 @@ static void main_window_load(Window *window) {
 static void main_window_unload(Window *window) {
   // destroy everything
   StatusBar_deinit();
+#ifdef PBL_COLOR
+  solar_background_deinit();
+#endif
   layer_destroy(ringLayer);
   layer_destroy(infoLayer);
   layer_destroy(centerLayer);

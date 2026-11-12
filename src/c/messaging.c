@@ -26,6 +26,9 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
   static Settings previousSettings;
   memcpy(&previousSettings, &globalSettings, sizeof(Settings));
 
+  Tuple *dynamicSolar = dict_find(iterator, MESSAGE_KEY_SETTING_DYNAMIC_SOLAR_THEME);
+  if (dynamicSolar) globalSettings.dynamicSolarTheme = dynamicSolar->value->int32 != 0;
+
   // Process configuration data
   Tuple *timeColor_tuple = dict_find(iterator, MESSAGE_KEY_SETTING_TIME_COLOR);
   Tuple *subTextPrimaryColor_tuple =

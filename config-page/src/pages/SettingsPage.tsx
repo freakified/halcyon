@@ -1,4 +1,5 @@
 import React from 'react';
+import { SolarThemePreview } from '../components/SolarThemePreview';
 import { useConfig, useCapabilities } from '../context/PebbleConfigContext';
 import {
   Page,
@@ -26,7 +27,7 @@ import {
 } from '../data/widgetTypes';
 
 export const SettingsPage: React.FC = () => {
-  const { settings, updateSetting } = useConfig();
+  const { settings, solarThemesSupported, updateSetting } = useConfig();
   const capabilities = useCapabilities();
   const widgetValues = [
     settings.SETTING_WIDGET_UPPER_SECONDARY,
@@ -209,6 +210,8 @@ export const SettingsPage: React.FC = () => {
           </>
         )}
       </Section>
+
+      {capabilities.COLOR && solarThemesSupported && settings.SETTING_USE_NIGHT_THEME === 1 && <SolarThemePreview />}
 
       <Section title="Widgets">
         <ThemePicker
