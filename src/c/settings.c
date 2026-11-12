@@ -1,5 +1,6 @@
 #include "settings.h"
 #include "solarUtils.h"
+#include "solar_theme.h"
 #include "utils.h"
 #include "widgets.h"
 #include <pebble.h>
@@ -64,6 +65,8 @@ void Settings_loadFromStorage() {
 
   // various appearance settings
   globalSettings.useNightTheme = true;
+  globalSettings.dynamicSolarTheme = persist_exists(SETTINGS_DYNAMIC_SOLAR_KEY)
+      && persist_read_bool(SETTINGS_DYNAMIC_SOLAR_KEY);
   globalSettings.useLargeFonts = false;
   globalSettings.showLeadingZero = false;
   globalSettings.pipVisibility = PIP_SHOW_ALL;
@@ -155,6 +158,10 @@ void Settings_saveToStorage() {
                      sizeof(StoredSettingsExtra));
 
   persist_write_int(SETTINGS_VERSION_PERSIST_KEY, CURRENT_SETTINGS_VERSION);
+  if (!persist_exists(SETTINGS_DYNAMIC_SOLAR_KEY) ||
+      persist_read_bool(SETTINGS_DYNAMIC_SOLAR_KEY) != globalSettings.dynamicSolarTheme) {
+    persist_write_bool(SETTINGS_DYNAMIC_SOLAR_KEY, globalSettings.dynamicSolarTheme);
+  }
 }
 
 static int16_t get_local_utc_offset(void) {
@@ -183,13 +190,23 @@ void Settings_updateDynamicSettings() {
 }
 
 ColorTheme getCurrentColorTheme() {
-  ColorTheme theme;
+  ColorTheme theme = {0};
 
   // Get current time in minutes since midnight
   struct tm *timeInfo = getCurrentTime();
   int currentMinutes = timeInfo->tm_hour * 60 + timeInfo->tm_min;
 
   bool useNight = globalSettings.useNightTheme && isNightTime(currentMinutes);
+#ifdef PBL_COLOR
+  SolarThemeState solar = {0};
+  bool dynamic = globalSettings.dynamicSolarTheme && globalSettings.useNightTheme;
+  if (dynamic) {
+    solar = solar_theme_state(currentMinutes,
+        currentSolarInfo.sunriseMinute, currentSolarInfo.sunsetMinute);
+    useNight = solar.night;
+    theme.solar = solar;
+  }
+#endif
 
   if (useNight) {
     theme.timeColor = globalSettings.nightTimeColor;
@@ -221,5 +238,50 @@ ColorTheme getCurrentColorTheme() {
     theme.sunFillColor = globalSettings.sunFillColor;
   }
 
+#ifdef PBL_COLOR
+  if (dynamic && solar.event) {
+    SolarRingPalette day = {globalSettings.ringNightColor.argb,
+        globalSettings.ringDayColor.argb, globalSettings.ringSunriseColor.argb,
+        globalSettings.ringSunsetColor.argb};
+    SolarRingPalette night = {globalSettings.nightRingNightColor.argb,
+        globalSettings.nightRingDayColor.argb, globalSettings.nightRingSunriseColor.argb,
+        globalSettings.nightRingSunsetColor.argb};
+    SolarRingPalette ring = solar_theme_ring(solar, day, night);
+    theme.ringNightColor.argb = ring.night;
+    theme.ringDayColor.argb = ring.day;
+    theme.ringSunriseColor.argb = ring.sunrise;
+    theme.ringSunsetColor.argb = ring.sunset;
+
+    int dayWeight = solar_theme_day_weight(solar);
+#define BLEND(field, nightField) \
+    theme.field.argb = solar_theme_blend(globalSettings.nightField.argb, \
+        globalSettings.field.argb, dayWeight)
+    BLEND(ringStrokeColor, nightRingStrokeColor);
+    BLEND(sunFillColor, nightSunFillColor);
+    BLEND(sunStrokeColor, nightSunStrokeColor);
+#undef BLEND
+    theme.bgColor = getSolarBackgroundColor(&theme, 0);
+    GColor edge = getSolarBackgroundColor(&theme, 256);
+#define READABLE(field, nightField, bg) \
+    theme.field.argb = solar_theme_readable(globalSettings.field.argb, \
+        globalSettings.nightField.argb, bg.argb)
+    READABLE(timeColor, nightTimeColor, theme.bgColor);
+    READABLE(subtextPrimaryColor, nightSubtextPrimaryColor, theme.bgColor);
+    READABLE(subtextSecondaryColor, nightSubtextSecondaryColor, theme.bgColor);
+    READABLE(pipColorPrimary, nightPipColorPrimary, edge);
+    READABLE(pipColorSecondary, nightPipColorSecondary, edge);
+#undef READABLE
+  }
+#endif
   return theme;
+}
+
+GColor getSolarBackgroundColor(const ColorTheme *theme, int radius) {
+#ifdef PBL_COLOR
+  if (theme->solar.event) {
+    return (GColor){.argb = solar_theme_blend(globalSettings.nightBgColor.argb,
+        globalSettings.bgColor.argb, solar_theme_background_weight(theme->solar, radius))};
+  }
+#endif
+  return theme->bgColor;
 }

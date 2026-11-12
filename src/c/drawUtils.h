@@ -1,5 +1,6 @@
 #pragma once
 #include <pebble.h>
+#include "settings.h"
 
 // various metrics
 #if defined(PBL_PLATFORM_GABBRO)
@@ -25,3 +26,5 @@
 
 void draw_center_layer(Layer *layer, GContext *ctx);
 void draw_ring_layer(Layer *layer, GContext *ctx);
+void draw_solar_background(Layer *layer, GContext *ctx, const ColorTheme *theme);
+void solar_background_deinit(void);

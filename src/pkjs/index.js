@@ -481,6 +481,9 @@ Pebble.addEventListener('showConfiguration', function () {
     }
   }));
 
+  // The hosted page also serves older PBWs, whose message keys lack this option.
+  url += '&solarThemes=1';
+
   var persistedSettings = localStorage.getItem('halcyonSettings');
   if (persistedSettings) {
     try {

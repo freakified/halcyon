@@ -30,6 +30,7 @@ export interface Capabilities {
   HEALTH: boolean;
   HRM: boolean;
   ALARMS: boolean;
+  EXTENDED_EMOJI: boolean;
 }
 
 export interface Settings {
@@ -66,6 +67,7 @@ export interface Settings {
   SETTING_NIGHT_SUN_FILL_COLOR: string;
   SETTING_USE_LARGE_FONTS: number;
   SETTING_USE_PRIMARY_WIDGET_FONT: number;
+  SETTING_DYNAMIC_SOLAR_THEME: number;
   SETTING_USE_NIGHT_THEME: number;
   SETTING_PIP_VISIBILITY: number;
   SETTING_SHOW_LEADING_ZERO: number;
