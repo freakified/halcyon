@@ -61,7 +61,9 @@ header p { color: var(--muted); max-width: 64ch; margin: 8px 0 0; }
 .seg button { flex: 1 1 auto; font: 500 13px var(--body); color: var(--muted); background: transparent; border: 0; border-radius: 5px; padding: 5px 8px; cursor: pointer; white-space: nowrap; }
 .seg button:hover { color: var(--fg); }
 .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
-button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+select { width: 100%; min-width: 0; font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 6px; }
+[hidden] { display: none !important; }
 
 input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
 .time-row { display: flex; gap: 10px; align-items: center; }
@@ -123,6 +125,19 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
         </div>
       </div>
 
+      <h2>Theme handover</h2>
+      <label class="switch"><span class="lab">Use day/night theme pair</span><input type="checkbox" id="paired"></label>
+      <div class="sec" id="pairCtl" hidden>
+        <label class="ctl"><span class="lab">Day theme</span><select id="dayTheme"></select></label>
+        <label class="ctl"><span class="lab">Night theme</span><select id="nightTheme"></select></label>
+        <span class="sub">The featured watch eases between these palettes from 45 minutes before to 45 minutes after sunrise and sunset. Short days or nights use shorter transitions.</span>
+        <span class="val" id="pairVal"></span>
+        <div class="seg" id="eventPreview" aria-label="Jump to solar event">
+          <button data-event="sunrise">Sunrise</button>
+          <button data-event="sunset">Sunset</button>
+        </div>
+      </div>
+
       <h2>Background</h2>
       <div class="ctl">
         <span class="lab">Mode</span>
@@ -153,13 +168,14 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
           <div class="ctl-head"><span class="lab">Sun halo</span><span class="val" id="haloVal"></span></div>
           <input type="range" id="halo" min="0" max="100" step="1" value="45" aria-label="Sun halo strength">
         </div>
-        <div class="ctl">
-          <span class="lab">Text and pip colors</span>
-          <div class="seg" data-key="skyText">
-            <button data-v="theme">Theme</button>
-            <button data-v="auto">Auto</button>
-            <button data-v="outline">Auto + outline</button>
-          </div>
+      </div>
+      <div class="ctl" id="textCtl">
+        <span class="lab">Text and pip colors</span>
+        <div class="seg" data-key="skyText">
+          <button data-v="theme">Theme</button>
+          <button data-v="auto">Auto</button>
+          <button data-v="outline">Auto + outline</button>
+          <button data-v="outline2">Auto + 2 px outline</button>
         </div>
       </div>
 
@@ -220,12 +236,13 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
       <button data-v="all">All</button>
     </div>
   </div>
+  <p class="sub">Individual theme previews below. Selecting one returns the featured watch to a single theme; your day/night choices are kept.</p>
   <div class="grid" id="grid"></div>
 
   <div class="notes">
     <div>
       <h3>What's accurate</h3>
-      <p>Resolution, ring geometry, sun path, pips, theme colors and the dithering itself follow the C code and the 64-color palette. Every pixel is one of the theme's own colors.</p>
+      <p>Resolution, ring geometry, sun path, pips, theme colors and the dithering itself follow the C code and the 64-color palette. Theme handovers use intermediate palette colors; the selected dither pattern softens their steps.</p>
     </div>
     <div>
       <h3>What's approximate</h3>
@@ -234,6 +251,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
     <div>
       <h3>How it would port</h3>
       <p>Sun glow: a pass after the text layer captures the frame buffer and repaints only pixels that are still <code>bgColor</code>. Sky: the center layer computes each pixel once a minute (about 20k pixels on chalk), then text is drawn in the auto-picked color, with the outline drawn as offset copies.</p>
+      <p>Handover uses whole preview minutes and a stationary dither pattern. Play accelerates the preview only; watch performance, readability and battery use still need emulator and hardware testing.</p>
     </div>
   </div>
 </div>
@@ -638,6 +656,7 @@ const state = {
   mode: 'auto', glowColor: 'sun', spread: 0.45, halo: 0.45, skyText: 'auto',
   pattern: 'blue', density: 0.35, radius: 0.45, moat: '1',
   blend: false, twilight: 70, plat: 'chalk', set: 'dark', featured: 'Solar Night',
+  paired: false, dayTheme: 'Solar Day', nightTheme: 'Solar Night',
   original: false, playing: false,
 };
 
@@ -879,6 +898,37 @@ function sunPos(P, m) {
 // ---------- sky mode ----------
 const lum = (c) => 0.299 * ((c >> 16) & 255) + 0.587 * ((c >> 8) & 255) + 0.114 * (c & 255);
 const smooth = (a, b, v) => { const t = Math.min(1, Math.max(0, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+// Handover changes the palette supplied to the existing sky/glow/ring renderer.
+// Keep it separate from the ring's spatial twilight blend, which still owns the arcs.
+function themePair(m) {
+  const day = ALL_THEMES.find((t) => t.name === state.dayTheme);
+  const night = ALL_THEMES.find((t) => t.name === state.nightTheme);
+  const dayLen = (state.sunset - state.sunrise + 1440) % 1440;
+  const half = Math.min(45, dayLen / 2, (1440 - dayLen) / 2);
+  let weight = isDay(m) ? 1 : 0, event = '';
+  if (half > 0) {
+    const rise = wrapDiff(m, state.sunrise), set = wrapDiff(m, state.sunset);
+    if (Math.abs(rise) < half) { weight = smooth(-half, half, rise); event = 'Sunrise'; }
+    else if (Math.abs(set) < half) { weight = 1 - smooth(-half, half, set); event = 'Sunset'; }
+  }
+  return { day, night, weight, event, half };
+}
+function pairColors(pair) {
+  if (state.original) return (isDay(state.minute) ? pair.day : pair.night).c;
+  const T = {};
+  for (const key of Object.keys(pair.day.c)) {
+    const a = pair.night.c[key], b = pair.day.c[key];
+    T[key] = [16, 8, 0].reduce((c, shift) => c | (Math.round(((a >> shift) & 255) * (1 - pair.weight) + ((b >> shift) & 255) * pair.weight) << shift), 0);
+  }
+  return T;
+}
+// Quantize intermediate colors using the existing stationary dither; no new timer.
+function paletteChannel(value, threshold) {
+  const level = value / 85, lo = Math.floor(level);
+  return 85 * (lo + (threshold < level - lo ? 1 : 0));
+}
+
 // Rough sun height: +1 at solar noon, 0 at sunrise/sunset, -1 at solar midnight
 function elevation(m) {
   const dayLen = (((state.sunset - state.sunrise) % 1440) + 1440) % 1440, nightLen = 1440 - dayLen;
@@ -962,14 +1012,15 @@ function rectBox(P, m) {
   return r;
 }
 
-function render(canvas, P, T, ctxCache) {
+function render(canvas, P, T, ctxCache, pair = null) {
   const { w, h } = P, N = w * h, g = staticGeo(P), m = state.minute;
   const effects = !state.original;
   const { content, blocked } = ctxCache;
   const col = new Int32Array(N);
   let textColors = [0, T.pip1, T.pip2, T.time, T.primary, T.secondary];
   const [sx, sy] = sunPos(P, m);
-  const mode = modeFor(T), skyMode = effects && mode === 'sky';
+  // A paired Auto view uses the day theme to choose one mode for the whole day.
+  const mode = modeFor(pair ? pair.day.c : T), skyMode = effects && mode === 'sky';
   let sp = null;
 
   if (skyMode) {
@@ -977,17 +1028,10 @@ function render(canvas, P, T, ctxCache) {
     sp = renderSky(P, T, g, sky, sx, sy, m);
     if (state.skyText !== 'theme') textColors = autoColors(textColors, content, sky, N);
     for (let i = 0; i < N; i++) col[i] = g.inCenter[i] ? (content[i] ? textColors[content[i]] : sky[i]) : T.stroke;
-    if (state.skyText === 'outline') {
-      for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
-        const i = y * w + x;
-        if (!g.inCenter[i] || content[i]) continue;
-        for (const o of [-1, 1, -w, w, -w - 1, -w + 1, w - 1, w + 1]) {
-          const code = content[i + o];
-          if (code >= 3) { col[i] = lum(textColors[code]) > 128 ? 0x000000 : 0xFFFFFF; break; }
-        }
-      }
-    }
   } else {
+    if (effects && pair && state.skyText !== 'theme') {
+      textColors = autoColors(textColors, content, new Int32Array(N).fill(T.bg), N);
+    }
     for (let i = 0; i < N; i++) {
       if (g.inCenter[i]) col[i] = content[i] ? textColors[content[i]] : T.bg;
       else col[i] = T.stroke;
@@ -1010,6 +1054,21 @@ function render(canvas, P, T, ctxCache) {
       if (d2 >= R2) continue;
       const t = 1 - Math.sqrt(d2) / R;
       if (threshold(tab, x, y) < peak * t * t) col[i] = glowCol;
+    }
+  }
+
+  // Reuse the sky outline for paired glow backgrounds too; keep glyphs solid.
+  if (effects && (skyMode || pair) && state.skyText.startsWith('outline')) {
+    const radius = state.skyText === 'outline2' ? 2 : 1;
+    const offsets = [-1, 1, -w, w, -w - 1, -w + 1, w - 1, w + 1];
+    if (radius === 2) offsets.push(-2, 2, -2 * w, 2 * w);
+    for (let y = radius; y < h - radius; y++) for (let x = radius; x < w - radius; x++) {
+      const i = y * w + x;
+      if (!g.inCenter[i] || content[i]) continue;
+      for (const o of offsets) {
+        const code = content[i + o];
+        if (code >= 3) { col[i] = lum(textColors[code]) > 128 ? 0x000000 : 0xFFFFFF; break; }
+      }
     }
   }
 
@@ -1060,9 +1119,14 @@ function render(canvas, P, T, ctxCache) {
   if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
   const ctx = canvas.getContext('2d');
   const img = ctx.createImageData(w, h), d = img.data;
+  const fading = effects && pair && pair.weight > 0 && pair.weight < 1;
   for (let i = 0; i < N; i++) {
     const c = col[i], o = i * 4;
     d[o] = (c >> 16) & 255; d[o + 1] = (c >> 8) & 255; d[o + 2] = c & 255; d[o + 3] = g.hidden[i] ? 0 : 255;
+    if (fading) {
+      const t = tab && !content[i] ? threshold(tab, (i % w) + 2, Math.floor(i / w) + 1) : 0.5;
+      for (let channel = 0; channel < 3; channel++) d[o + channel] = paletteChannel(d[o + channel], t);
+    }
   }
   ctx.putImageData(img, 0, 0);
   canvas.className = P.round ? 'round' : 'rect';
@@ -1083,7 +1147,7 @@ function buildGrid() {
     const c = document.createElement('canvas');
     const s = document.createElement('span'); s.textContent = t.name;
     b.append(c, s);
-    b.addEventListener('click', () => { state.featured = t.name; schedule(); });
+    b.addEventListener('click', () => { state.featured = t.name; state.paired = false; schedule(); });
     grid.append(b);
     return { t, b, c, s };
   });
@@ -1101,19 +1165,20 @@ function draw() {
   const P = PLATFORMS[state.plat];
   const cc = contentFor(P, state.minute, Number(state.moat));
   const feat = ALL_THEMES.find((t) => t.name === state.featured) || ALL_THEMES[0];
+  const pair = state.paired ? themePair(state.minute) : null;
   sizeHero(P);
-  const r = render(hero, P, feat.c, cc);
+  const r = render(hero, P, pair ? pairColors(pair) : feat.c, cc, pair);
   let pct;
   if (state.original) pct = 'effects off';
   else if (r.mode === 'sky') pct = `sky · sun height ${r.sp.e >= 0 ? '+' : ''}${r.sp.e.toFixed(2)} · warmth ${Math.round(r.sp.horizon * 100)}%`;
   else pct = state.pattern === 'off' ? 'glow off' : `glow peak ${Math.round(r.peak * 100)}%`;
   $('heroStat').textContent = `${fmtAmPm(state.minute)} · ${pct}`;
-  $('heroName').textContent = feat.name + (state.mode === 'auto' ? (r.mode === 'sky' ? ' · Sky' : ' · Sun glow') : '');
+  $('heroName').textContent = (pair ? `${pair.day.name} / ${pair.night.name}` : feat.name) + (state.mode === 'auto' ? (r.mode === 'sky' ? ' · Sky' : ' · Sun glow') : '');
   for (const tile of tiles) {
     const tr = render(tile.c, P, tile.t.c, cc);
     tile.s.textContent = tile.t.name + (state.mode === 'auto' ? (tr.mode === 'sky' ? ' · Sky' : ' · Glow') : '');
     tile.c.style.maxWidth = P.w * 1.5 + 'px';
-    tile.b.setAttribute('aria-pressed', String(tile.t.name === feat.name));
+    tile.b.setAttribute('aria-pressed', String(!pair && tile.t.name === feat.name));
   }
   updateReadouts();
 }
@@ -1127,6 +1192,11 @@ function relTime() {
   return `${txt} ${d < 0 ? 'before' : 'after'} ${name}`;
 }
 function updateReadouts() {
+  $('paired').checked = state.paired;
+  $('pairCtl').hidden = !state.paired;
+  const pair = themePair(state.minute);
+  $('pairVal').textContent = !pair.half ? 'Set different sunrise and sunset times to enable handover.'
+    : `${pair.event ? pair.event + ' handover' : pair.weight === 1 ? 'Day theme' : 'Night theme'} · ${Math.round(pair.weight * 100)}% day / ${Math.round((1 - pair.weight) * 100)}% night`;
   $('timeVal').textContent = `${fmtAmPm(state.minute)} · ${relTime()}`;
   $('densityVal').textContent = Math.round(state.density * 100) + '%';
   $('radiusVal').textContent = Math.round(state.radius * 100) + '% of face';
@@ -1134,24 +1204,25 @@ function updateReadouts() {
   $('twilightCtl').hidden = !state.blend;
   $('skySec').hidden = state.mode === 'glow';
   $('glowSec').hidden = state.mode === 'sky';
+  $('textCtl').hidden = state.mode === 'glow' && !state.paired;
   $('patternOff').hidden = state.mode !== 'glow';
   $('spreadVal').textContent = Math.round(state.spread * 100) + '%';
   $('haloVal').textContent = Math.round(state.halo * 100) + '%';
   $('modeSub').textContent = {
-    auto: 'Sky for themes with a light background, sun glow for themes with a dark one.',
+    auto: state.paired ? 'The day theme chooses Sky or Sun glow for the paired preview, keeping that mode throughout the handover. Individual previews still choose per theme.' : 'Sky for themes with a light background, sun glow for themes with a dark one.',
     sky: "Replaces the background with a sky lit by the sun. Night and day blend by the sun's height, and the sunrise or sunset color floods in near the horizon.",
     glow: "Keeps the theme's background and adds a glow around the sun.",
   }[state.mode];
   $('glowColorSub').textContent = state.glowColor === 'ring'
     ? 'The ring color under the sun right now: day, sunrise, sunset or night.'
     : "Always the theme's sun fill color.";
-  document.querySelectorAll('.seg').forEach((seg) => {
+  document.querySelectorAll('.seg[data-key]').forEach((seg) => {
     const v = String(state[seg.dataset.key]);
     seg.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
   });
 }
 
-document.querySelectorAll('.seg').forEach((seg) => {
+document.querySelectorAll('.seg[data-key]').forEach((seg) => {
   seg.addEventListener('click', (e) => {
     const b = e.target.closest('button'); if (!b) return;
     const key = seg.dataset.key;
@@ -1170,6 +1241,17 @@ $('twilight').addEventListener('input', (e) => { state.twilight = Number(e.targe
 $('spread').addEventListener('input', (e) => { state.spread = Number(e.target.value) / 100; schedule(); });
 $('halo').addEventListener('input', (e) => { state.halo = Number(e.target.value) / 100; schedule(); });
 $('blend').addEventListener('change', (e) => { state.blend = e.target.checked; schedule(); });
+$('paired').addEventListener('change', (e) => { state.paired = e.target.checked; schedule(); });
+for (const key of ['dayTheme', 'nightTheme']) {
+  for (const theme of ALL_THEMES) $(key).add(new Option(theme.name, theme.name));
+  $(key).value = state[key];
+  $(key).addEventListener('change', (e) => { state[key] = e.target.value; schedule(); });
+}
+$('eventPreview').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  setPlaying(false);
+  state.minute = state[b.dataset.event]; $('time').value = state.minute; schedule();
+});
 const parseTime = (v) => { const [h, m] = v.split(':').map(Number); return h * 60 + m; };
 $('sunrise').addEventListener('change', (e) => { if (e.target.value) { state.sunrise = parseTime(e.target.value); schedule(); } });
 $('sunset').addEventListener('change', (e) => { if (e.target.value) { state.sunset = parseTime(e.target.value); textCache.clear(); schedule(); } });
@@ -1180,7 +1262,7 @@ hero.addEventListener('pointerdown', (e) => { hero.setPointerCapture(e.pointerId
 document.addEventListener('keydown', (e) => { if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); setOriginal(true); } });
 document.addEventListener('keyup', (e) => { if (e.code === 'Space') setOriginal(false); });
 
-let last = 0;
+let last = 0, playFrame = 0;
 function tick(ts) {
   if (!state.playing) return;
   if (ts - last > 40) {
@@ -1189,14 +1271,17 @@ function tick(ts) {
     $('time').value = state.minute;
     draw();
   }
-  requestAnimationFrame(tick);
+  playFrame = requestAnimationFrame(tick);
 }
-$('play').addEventListener('click', () => {
-  state.playing = !state.playing;
+function setPlaying(playing) {
+  if (state.playing === playing) return;
+  state.playing = playing;
   $('play').setAttribute('aria-label', state.playing ? 'Pause' : 'Play through the day');
   $('playIcon').innerHTML = state.playing ? '<path d="M2 1h3v10H2zM7 1h3v10H7z"/>' : '<path d="M2 1l9 5-9 5z"/>';
-  if (state.playing) requestAnimationFrame(tick);
-});
+  if (state.playing) playFrame = requestAnimationFrame(tick);
+  else cancelAnimationFrame(playFrame);
+}
+$('play').addEventListener('click', () => setPlaying(!state.playing));
 
 buildGrid();
 draw();
